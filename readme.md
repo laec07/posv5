@@ -13,3 +13,14 @@ If you discover a security vulnerability within ultimate POS, please send an e-m
 ## License
 
 The Ultimate POS software is licensed under the [Codecanyon license](https://codecanyon.net/licenses/standard).
+
+## Nota LAEC
+- agregar la carpeta VENDOR, esta no esta versionada.
+- agregar la carpeta framework en la ubicación storage
+- Verificar que existan las carpetas:
+    public/css/
+    public/fonts/
+    public/images/
+    public/modules/
+- Configurar archivo .env
+- 
