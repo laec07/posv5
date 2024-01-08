@@ -1811,7 +1811,7 @@ class ProductUtil extends Util
             DB::raw("(SELECT SUM( COALESCE(pl.quantity - ($pl_query_string), 0) * purchase_price_inc_tax) FROM transactions 
                   JOIN purchase_lines AS pl ON transactions.id=pl.transaction_id
                   WHERE (transactions.status='received' OR transactions.type='purchase_return')  AND transactions.location_id=vld.location_id 
-                  AND (pl.variation_id=variations.id)) as stock_price"),
+                  AND (pl.variation_id=variations.id)) as stock_price1"), //Muestra el valor del stock segun compra, pero por transacciones incorrectas, muestra datos incorrectos
             DB::raw("(SELECT SUM(IF(price_group_id = 6, vgp.price_inc_tax, 0)) FROM variation_group_prices vgp WHERE vgp.variation_id = variations.id) as t1_price"),
             DB::raw("(SELECT SUM(IF(price_group_id = 7, vgp.price_inc_tax, 0)) FROM variation_group_prices vgp WHERE vgp.variation_id = variations.id) as t2_price"),
             DB::raw("(SELECT SUM(IF(price_group_id = 8, vgp.price_inc_tax, 0)) FROM variation_group_prices vgp WHERE vgp.variation_id = variations.id) as t3_price"),
@@ -1835,7 +1835,8 @@ class ProductUtil extends Util
             'p.product_custom_field3',
             'p.product_custom_field4',
             'bs.name as name_brands',
-            'variations.dpp_inc_tax as unit_purchase_price'//laestrada
+            'variations.dpp_inc_tax as unit_purchase_price',//laestrada
+            DB::raw("SUM(vld.qty_available)*variations.dpp_inc_tax as stock_price")//laestrada  se corrije valor de setock según unidades actuales * precio compra
         )->groupBy('variations.id', 'vld.location_id');
 
         if (isset($filters['show_manufacturing_data']) && $filters['show_manufacturing_data']) {
