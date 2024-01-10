@@ -234,6 +234,13 @@
 						</div>
 					</div>
 				@endif
+				<div class="col-sm-3"> <!-- laestrada campo No envio Sierra Madre -->
+					<div class="form-group">
+						{!! Form::label('envi_no',  __('Envio No') . '.') !!}
+						{!! Form::text('envi_no', null, ['class' => 'form-control', 'placeholder' => 'No. Envio' ]); !!}
+						<p class="help-block">@lang('Envio interno')</p>
+					</div>
+				</div><!-- laestrada fin -->
 					@can('edit_invoice_number')
 					<div class="col-sm-3">
 						<div class="form-group">

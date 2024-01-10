@@ -55,6 +55,7 @@ class TransactionUtil extends Util
             $pay_term_number = $contact->pay_term_number;
             $pay_term_type = $contact->pay_term_type;
         }
+        
         $transaction = Transaction::create([
             'business_id' => $business_id,
             'location_id' => $input['location_id'],
@@ -77,7 +78,7 @@ class TransactionUtil extends Util
             'staff_note' => ! empty($input['staff_note']) ? $input['staff_note'] : null,
             'created_by' => $user_id,
             'document' => ! empty($input['document']) ? $input['document'] : null,
-            'custom_field_1' => ! empty($input['custom_field_1']) ? $input['custom_field_1'] : null,
+            'custom_field_1' => ! empty($input['envi_no']) ? $input['envi_no'] : null, // laestrada No envio sierra madre
             'custom_field_2' => ! empty($input['custom_field_2']) ? $input['custom_field_2'] : null,
             'custom_field_3' => ! empty($input['custom_field_3']) ? $input['custom_field_3'] : null,
             'custom_field_4' => ! empty($input['custom_field_4']) ? $input['custom_field_4'] : null,
@@ -184,7 +185,6 @@ class TransactionUtil extends Util
             $pay_term_number = $contact->pay_term_number;
             $pay_term_type = $contact->pay_term_type;
         }
-
         $update_date = [
             'status' => $input['status'],
             'invoice_no' => ! empty($input['invoice_no']) ? $input['invoice_no'] : $invoice_no,
@@ -236,7 +236,8 @@ class TransactionUtil extends Util
             'types_of_service_id' => ! empty($input['types_of_service_id']) ? $input['types_of_service_id'] : null,
             'packing_charge' => ! empty($input['packing_charge']) ? $input['packing_charge'] : 0,
             'packing_charge_type' => ! empty($input['packing_charge_type']) ? $input['packing_charge_type'] : null,
-            'service_custom_field_1' => ! empty($input['service_custom_field_1']) ? $input['service_custom_field_1'] : null,
+            
+            'service_custom_field_1' => ! empty($input['envi_no']) ? $input['envi_no'] : null,
             'service_custom_field_2' => ! empty($input['service_custom_field_2']) ? $input['service_custom_field_2'] : null,
             'service_custom_field_3' => ! empty($input['service_custom_field_3']) ? $input['service_custom_field_3'] : null,
             'service_custom_field_4' => ! empty($input['service_custom_field_4']) ? $input['service_custom_field_4'] : null,
@@ -328,6 +329,7 @@ class TransactionUtil extends Util
                                         'unit_price_inc_tax' => $this_price,
                                         'parent_sell_line_id' => $product['transaction_sell_lines_id'],
                                         'children_type' => 'modifier',
+                                        'sub_unit_id'
                                     ]);
                                 }
                             }

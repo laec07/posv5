@@ -43,7 +43,7 @@
                         <th>@lang('messages.date')</th>
                         <th>@lang('sale.invoice_no')</th>
                         <th>@lang('sale.customer_name')</th>
-                        <th>@lang('lang_v1.contact_no')</th>
+                        <th>Envio No.</th> <!-- laestrada para sierra madre No envio -->
                         <th>@lang('sale.location')</th>
                         <th>@lang('sale.payment_status')</th>
                         <th>@lang('lang_v1.payment_method')</th>
@@ -162,7 +162,7 @@ $(document).ready( function(){
             { data: 'transaction_date', name: 'transaction_date'  },
             { data: 'invoice_no', name: 'invoice_no'},
             { data: 'conatct_name', name: 'conatct_name'},
-            { data: 'mobile', name: 'contacts.mobile'},
+            { data: 'custom_field_1', name: 'contacts.mobile'}, //  laestrada para sierra madre No envio
             { data: 'business_location', name: 'bl.name'},
             { data: 'payment_status', name: 'payment_status'},
             { data: 'payment_methods', orderable: false, "searchable": false},
