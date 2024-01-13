@@ -305,6 +305,20 @@ class Transaction extends Model
 
         return $payment_status;
     }
+    public static function getPaymentStatusdate($transaction)
+    {
+        $payment_status = $transaction->payment_status;
+
+        if (in_array($payment_status, ['partial', 'due']) && ! empty($transaction->pay_term_number) && ! empty($transaction->pay_term_type)) {
+            $transaction_date = \Carbon::parse($transaction->transaction_date);
+            $payment_status = $transaction->pay_term_type == 'days' ? $transaction_date->addDays($transaction->pay_term_number) : $transaction_date->addMonths($transaction->pay_term_number);
+
+        }else{
+            $payment_status='';
+        }
+
+        return $payment_status;
+    }
 
     /**
      * Due date custom attribute
