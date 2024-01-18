@@ -152,7 +152,7 @@ $(document).ready(function() {
         },
         "footerCallback": function ( row, data, start, end, display ) {
             var footer_total_stock = 0;
-            var footer_unit_purchase_price =0;
+            var footer_unit_purchase_price =0;//LAESTRADA
             var footer_total_sold = 0;
             var footer_total_transfered = 0;
             var total_adjusted = 0;
@@ -164,8 +164,11 @@ $(document).ready(function() {
                 footer_total_stock += $(data[r].stock).data('orig-value') ? 
                 parseFloat($(data[r].stock).data('orig-value')) : 0;
 
-                footer_unit_purchase_price += $(data[r].unit_purchase_price).data('orig-value') ? 
-                parseFloat($(data[r].unit_purchase_price).data('orig-value')) : 0;
+                footer_unit_purchase_price += data[r].unit_purchase_price ? 
+                parseFloat(data[r].unit_purchase_price) : 0;
+
+                console.log('Hola:',data ); //
+                //console.log('parsedValue:', parsedValue); //
 
                 footer_total_sold += $(data[r].total_sold).data('orig-value') ? 
                 parseFloat($(data[r].total_sold).data('orig-value')) : 0;
@@ -190,13 +193,14 @@ $(document).ready(function() {
             }
 
             $('.footer_total_stock').html(__currency_trans_from_en(footer_total_stock, false));
-            $('.footer_unit_purchase_price').html(__currency_trans_from_en(footer_unit_purchase_price, false));
+            $('.footer_unit_purchase_price').html(__currency_trans_from_en(footer_unit_purchase_price, false)); 
             $('.footer_total_stock_price').html(__currency_trans_from_en(total_stock_price));
             $('.footer_total_sold').html(__currency_trans_from_en(footer_total_sold, false));
             $('.footer_total_transfered').html(__currency_trans_from_en(footer_total_transfered, false));
             $('.footer_total_adjusted').html(__currency_trans_from_en(total_adjusted, false));
             $('.footer_stock_value_by_sale_price').html(__currency_trans_from_en(footer_stock_value_by_sale_price));
             $('.footer_potential_profit').html(__currency_trans_from_en(total_potential_profit));
+           // console.log('footer_unit_purchase_price:', footer_unit_purchase_price);
             if ($('th.current_stock_mfg').length) {
                 $('.footer_total_mfg_stock').html(__currency_trans_from_en(footer_total_mfg_stock, false));
             }
