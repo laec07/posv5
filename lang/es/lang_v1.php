@@ -647,6 +647,7 @@ return [
     'edit_purchase_return' => 'Editar devolución de compra',
     'purchase_return_updated_success' => 'Devolución de compra actualizada correctamente',
     'profit_by_customer' => 'Beneficio por cliente',
+    'profit_by_agente' => 'Beneficio por agente',
     'profit_by_day' => 'Beneficio por día',
     'sunday' => 'Domingo',
     'monday' => 'Lunes',
@@ -1345,4 +1346,5 @@ return [
     'kitchen_order_tooltip' => 'El pedido se enviará a la cocina solo si esta opción está marcada',
     'disable_quotation' => 'Desactivar Cotización',
     'disable_card' => 'Desactivar Tarjeta',
+    
 ];

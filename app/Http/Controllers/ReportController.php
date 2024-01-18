@@ -3176,6 +3176,12 @@ class ReportController extends Controller
                 ->groupBy('sale.contact_id');
         }
 
+        if ($by == 'agent') {
+            $query->join('users as US', 'sale.commission_agent', '=', 'US.id')
+            ->addSelect('US.first_name as fn_agent', 'US.last_name as ls_agent')
+                ->groupBy('sale.commission_agent');
+        }
+
         $datatable = Datatables::of($query);
 
         if (in_array($by, ['invoice'])) {
@@ -3227,6 +3233,11 @@ class ReportController extends Controller
         if ($by == 'customer') {
             $datatable->editColumn('customer', '@if(!empty($supplier_business_name)) {{$supplier_business_name}}, <br> @endif {{$customer}}');
             $raw_columns[] = 'customer';
+        }
+
+        if ($by == 'agent') {
+            $datatable->editColumn('Agente', '@if(!empty($supplier_business_name)) {{$supplier_business_name}}, <br> @endif {{$fn_agent." ".$ls_agent}}');
+            $raw_columns[] = 'fn_agent';
         }
 
         if ($by == 'invoice') {
