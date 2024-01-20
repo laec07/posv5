@@ -1832,7 +1832,7 @@ class ReportController extends Controller
                     'tax_rates.name as tax',
                     'u.short_name as unit',
                     'v.dpp_inc_tax as unit_purchase_price',
-                    DB::raw('(transaction_sell_lines.unit_price_before_discount - v.dpp_inc_tax) as diferencia'),
+                    DB::raw('((transaction_sell_lines.unit_price_before_discount - v.dpp_inc_tax)*(transaction_sell_lines.quantity - transaction_sell_lines.quantity_returned)) as diferencia'), //laestrada
                     'transaction_sell_lines.parent_sell_line_id',
                     DB::raw('((transaction_sell_lines.quantity - transaction_sell_lines.quantity_returned) * transaction_sell_lines.unit_price_inc_tax) as subtotal'),
                     DB::raw('(SELECT SUM(IF(TP.is_return = 1,-1*TP.amount,TP.amount)) FROM transaction_payments AS TP WHERE
@@ -1928,18 +1928,23 @@ class ReportController extends Controller
                     $this->transactionUtil->num_f($row->unit_price, true).'</span>';
                 })
                 //LAESTRADA reporte venta
-                ->editColumn(
-                    'total_paid',
-                    '<span class="total-paid" data-orig-value="{{$total_paid}}">@format_currency($total_paid)</span>'
-                )
+                ->editColumn('total_paid', function ($row) {
+                    return '<span class="total_paid" data-orig-value="'.$row->total_paid.'">'.
+                    $this->transactionUtil->num_f($row->total_paid, true).'</span>';
+                })
+
                 //LAESTRADA reporte venta
                 ->editColumn('unit_purchase_price', function ($row) {
-                    return $this->transactionUtil->num_f($row->unit_purchase_price, true);
+                    return '<span class="unit_purchase_price" data-orig-value="'.$row->unit_purchase_price.'">'.
+                    $this->transactionUtil->num_f($row->unit_purchase_price, true).'</span>';
                 })
+
                 //LAESTRADA reporte venta
                 ->editColumn('diferencia', function ($row) {
-                    return $this->transactionUtil->num_f($row->diferencia, true);
+                    return '<span class="diferencia" data-orig-value="'.$row->diferencia.'">'.
+                    $this->transactionUtil->num_f($row->diferencia, true).'</span>';
                 })
+
                 ->editColumn(
                     'payment_status',
                     function ($row) {
@@ -1963,11 +1968,11 @@ class ReportController extends Controller
                 ->addColumn('total_remaining', function ($row) {
                     $total_remaining = $row->subtotal - $row->total_paid;
                     if($row->payment_status!='paid'){
-                        $total_remaining_html = '<span class="payment_due" data-orig-value="'.$total_remaining.'">'.$this->transactionUtil->num_f($total_remaining, true).'</span>';
+                        $total_remaining_html = '<span class="total_remaining" data-orig-value="'.$total_remaining.'">'.$this->transactionUtil->num_f($total_remaining, true).'</span>';
 
                         
                     }else{
-                        $total_remaining_html=0;
+                        $total_remaining_html='<span class="total_remaining" data-orig-value="0"></span>';;
                     }
                     return $total_remaining_html;
 

@@ -144,14 +144,14 @@
                                         <td id="footer_total_sold"></td>
                                         <td></td>
                                         <td></td>
-                                        <td></td>
+                                        <td ><span class="display_currency" id="footer_total_difference" data-currency_symbol ="true"></span></td> <!-- laestrada -->
                                         <td></td>
                                         <td id="footer_tax"></td>
                                         <td></td>
                                         <td><span class="display_currency" id="footer_subtotal" data-currency_symbol ="true"></span></td>
                                         <td></td>
-                                        <td></td>
-                                        <td></td>
+                                        <td ><span class="display_currency" id="footer_total_paid" data-currency_symbol ="true"></span></td> <!-- laestrada -->
+                                        <td ><span class="display_currency" id="footer_total_remaining" data-currency_symbol ="true"></span></td> <!-- laestrada -->
                                         <td></td>
                                         <td></td>
                                     </tr>
