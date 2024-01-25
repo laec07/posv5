@@ -1206,7 +1206,6 @@ class ProductUtil extends Util
                     $this->updateProductQuantity($transaction->location_id, $data['product_id'], $data['variation_id'], $new_quantity_f, 0, $currency_details);
                 }
             }
-
             $purchase_line->quantity = $new_quantity;
             $purchase_line->pp_without_discount = ($this->num_uf($data['pp_without_discount'], $currency_details) * $exchange_rate) / $multiplier;
             $purchase_line->discount_percent = $this->num_uf($data['discount_percent'], $currency_details);
@@ -1214,7 +1213,7 @@ class ProductUtil extends Util
             $purchase_line->purchase_price_inc_tax = ($this->num_uf($data['purchase_price_inc_tax'], $currency_details) * $exchange_rate) / $multiplier;
             $purchase_line->item_tax = ($this->num_uf($data['item_tax'], $currency_details) * $exchange_rate) / $multiplier;
             $purchase_line->tax_id = $data['purchase_line_tax_id'];
-            $purchase_line->lot_number = ! empty($data['lot_number']) ? $data['lot_number'] : null;
+            $purchase_line->lot_number = ! empty($data['lot_number']) ? $data['lot_number'] : $transaction->ref_count; //LAESTRADA agrega No_lote automatico siendo el id de la transaccion para que lleve correlativo
             $purchase_line->mfg_date = ! empty($data['mfg_date']) ? $this->uf_date($data['mfg_date']) : null;
             $purchase_line->exp_date = ! empty($data['exp_date']) ? $this->uf_date($data['exp_date']) : null;
             $purchase_line->sub_unit_id = ! empty($data['sub_unit_id']) ? $data['sub_unit_id'] : null;

@@ -12,7 +12,7 @@
 <section class="content content-custom no-print">
     <br>
     @if(auth()->user()->can('dashboard.data'))
-        @if($is_admin)
+       <!-- @if($is_admin) -->
         	<div class="row">
                 <div class="col-md-4 col-xs-12">
                     @if(count($all_locations) > 1)
@@ -167,7 +167,7 @@
                     {!! $widget !!}
                 @endforeach
             @endif
-        @endif 
+        <!--@endif -->
         <!-- end is_admin check -->
          @if(auth()->user()->can('sell.view') || auth()->user()->can('direct_sell.view'))
             @if(!empty($all_locations))
