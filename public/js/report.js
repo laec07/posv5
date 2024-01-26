@@ -921,6 +921,9 @@ $(document).ready(function() {
                     d.category_id = $('select#psr_filter_category_id').val();
                     d.brand_id = $('select#psr_filter_brand_id').val();
                     d.customer_group_id = $('#psr_customer_group_id').val();
+                    console.log(d);
+                    d.user = $('select#sr_id').val();
+                    d.status_paid = $('select#sell_list_filter_payment_status').val();
                 },
             },
             columns: [
@@ -997,6 +1000,8 @@ $(document).ready(function() {
                 d.category_id = $('select#psr_filter_category_id').val();
                 d.brand_id = $('select#psr_filter_brand_id').val();
                 d.customer_group_id = $('#psr_customer_group_id').val();
+                d.user = $('select#sr_id').val();
+                d.status_paid = $('select#sell_list_filter_payment_status').val();
             },
         },
         columns: [
@@ -1046,6 +1051,8 @@ $(document).ready(function() {
                 d.category_id = $('select#psr_filter_category_id').val();
                 d.brand_id = $('select#psr_filter_brand_id').val();
                 d.customer_group_id = $('#psr_customer_group_id').val();
+                d.user = $('select#sr_id').val();
+                d.status_paid = $('select#sell_list_filter_payment_status').val();
             },
         },
         columns: [
@@ -1067,8 +1074,8 @@ $(document).ready(function() {
         },
     });
 
-    $(
-        '#psr_customer_group_id, #psr_filter_category_id, #psr_filter_brand_id, #product_sell_report_form #variation_id, #product_sell_report_form #location_id, #product_sell_report_form #customer_id'
+    $(//laestrada se agrega variables del filtro para recargar tabla
+        '#psr_customer_group_id, #psr_filter_category_id, #psr_filter_brand_id, #product_sell_report_form #variation_id, #product_sell_report_form #location_id, #product_sell_report_form #customer_id,#sell_list_filter_payment_status,#sr_id'
     ).change(function() {
         product_sell_report.ajax.reload();
         product_sell_grouped_report.ajax.reload();

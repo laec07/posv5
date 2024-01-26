@@ -1822,6 +1822,7 @@ class ReportController extends Controller
                     't.payment_status',//LAESTRADA reporte venta
                     'users.first_name as name_agent',
                     'users.last_name as lastname_agent',
+                    'users.id',
                     't.transaction_date as transaction_date',
                     'transaction_sell_lines.unit_price_before_discount as unit_price',
                     'transaction_sell_lines.unit_price_inc_tax as unit_sale_price',
@@ -1879,6 +1880,21 @@ class ReportController extends Controller
             $brand_id = $request->get('brand_id', null);
             if (! empty($brand_id)) {
                 $query->where('p.brand_id', $brand_id);
+            }
+
+            $status_paid = $request->get('status_paid', null); // filtro estado de pago, busca por paid and partial si se selecciona partial LAESTRADA
+            if (! empty($status_paid)) {
+                if ($status_paid == 'due') {
+                    $query->whereIn('t.payment_status', ['partial','due']);
+                }else{
+                    $query->where('t.payment_status', $status_paid);
+                }
+                
+            }
+
+            $user_id = $request->get('user', null);
+            if (! empty($user_id)) {
+                $query->where('users.id', $user_id);
             }
 
             return Datatables::of($query)
@@ -2001,10 +2017,11 @@ class ReportController extends Controller
         $categories = Category::forDropdown($business_id, 'product');
         $brands = Brands::forDropdown($business_id);
         $customer_group = CustomerGroup::forDropdown($business_id, false, true);
+        $users = User::allUsersDropdown($business_id, false);
 
         return view('report.product_sell_report')
             ->with(compact('business_locations', 'customers', 'categories', 'brands',
-                'customer_group', 'product_custom_field1', 'product_custom_field2'));
+                'customer_group', 'product_custom_field1', 'product_custom_field2','users'));
     }
 
     /**
@@ -2163,7 +2180,7 @@ class ReportController extends Controller
         }
 
         $business_id = $request->session()->get('user.business_id');
-
+        
         //Return the details in ajax call
         if ($request->ajax()) {
             $query = Product::where('products.business_id', $business_id)

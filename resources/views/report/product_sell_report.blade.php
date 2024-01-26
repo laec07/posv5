@@ -62,6 +62,18 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
+                        {!! Form::label('sr_id',  __('report.user') . ':') !!}
+                        {!! Form::select('sr_id', $users, null, ['class' => 'form-control select2', 'style' => 'width:100%', 'placeholder' => __('report.all_users')]); !!}
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        {!! Form::label('sell_list_filter_payment_status',  __('purchase.payment_status') . ':') !!}
+                        {!! Form::select('sell_list_filter_payment_status', ['paid' => __('lang_v1.paid'), 'due' => __('lang_v1.due'), 'partial' => __('lang_v1.partial'), 'overdue' => __('lang_v1.overdue')], null, ['class' => 'form-control select2', 'style' => 'width:100%', 'placeholder' => __('lang_v1.all')]); !!}
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
                         {!! Form::label('brand_id', __('product.brand') . ':') !!}
                         {!! Form::select('brand_id', $brands, null, ['class' => 'form-control select2', 'style' => 'width:100%', 'id' => 'psr_filter_brand_id', 'placeholder' => __('lang_v1.all')]); !!}
                     </div>
@@ -83,6 +95,7 @@
                         {!! Form::text('end_time', @format_time($endDay), ['class' => 'form-control width-50 f-left', 'id' => 'product_sr_end_time']); !!}
                     </div>
                 </div>
+
                 {!! Form::close() !!}
             @endcomponent
         </div>
@@ -226,7 +239,7 @@
     <script src="{{ asset('js/report.js?v=' . $asset_v) }}"></script>
     <script type="text/javascript">
         $(
-        '#product_sell_report_form #location_id, #product_sell_report_form #customer_id, #psr_filter_brand_id, #psr_filter_category_id, #psr_customer_group_id'
+        '#product_sell_report_form #location_id, #product_sell_report_form #customer_id, #psr_filter_brand_id, #psr_filter_category_id, #psr_customer_group_id, #sr_id, #sell_list_filter_payment_status '
     ).change(function() {
         $('.nav-tabs li.active').find('a[data-toggle="tab"]').trigger('shown.bs.tab');
     });
@@ -241,6 +254,7 @@
                                 ajax: {
                                     url: '/reports/product-sell-grouped-by',
                                     data: function(d) {
+                                        console.log(d);
                                         var start = '';
                                         var end = '';
                                         var start_time = $('#product_sr_start_time').val();
@@ -264,6 +278,8 @@
                                         d.customer_id = $('select#customer_id').val();
                                         d.location_id = $('select#location_id').val();
                                         d.customer_group_id = $('#psr_customer_group_id').val();
+                                        d.user = ('select#sr_id').val();
+                                        d.status_pais = ('select#sell_list_filter_payment_status').val();
                                     },
                                 },
                                 columns: [
@@ -320,6 +336,8 @@
                                         d.customer_id = $('select#customer_id').val();
                                         d.location_id = $('select#location_id').val();
                                         d.customer_group_id = $('#psr_customer_group_id').val();
+                                        d.user = ('select#sr_id').val();
+                                        d.status_pais = ('select#sell_list_filter_payment_status').val();
                                     },
                                 },
                                 columns: [
