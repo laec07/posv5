@@ -100,7 +100,7 @@ class SellController extends Controller
             if ($permitted_locations != 'all') {
                 $sells->whereIn('transactions.location_id', $permitted_locations);
             }
-
+            
             //Add condition for created_by,used in sales representative sales report
             if (request()->has('created_by')) {
                 $created_by = request()->get('created_by');
@@ -132,7 +132,7 @@ class SellController extends Controller
                 }
             }
 
-            if (! $is_admin && ! $only_shipments && $sale_type != 'sales_order') {
+            if (! $is_admin && ! $only_shipments && $sale_type != 'sales_order') { 
                 $payment_status_arr = [];
                 if (auth()->user()->can('view_paid_sells_only')) {
                     $payment_status_arr[] = 'paid';
@@ -163,9 +163,14 @@ class SellController extends Controller
                     }
                 }
             }
-
+            
             if (! empty(request()->input('payment_status')) && request()->input('payment_status') != 'overdue') {
-                $sells->where('transactions.payment_status', request()->input('payment_status'));
+                if (request()->input('payment_status') == 'due') {//Se agrega condicion para cuando sea due, muestre las partial y las due LAESTRADA
+                    $sells->whereIn('transactions.payment_status', ['due', 'partial']);
+                }else{
+                    $sells->where('transactions.payment_status', request()->input('payment_status'));
+                }//fin laestrada
+                
             } elseif (request()->input('payment_status') == 'overdue') {
                 $sells->whereIn('transactions.payment_status', ['due', 'partial'])
                     ->whereNotNull('transactions.pay_term_number')
