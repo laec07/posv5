@@ -197,10 +197,10 @@
                 } ],
                 columns: [
                         { data: 'mass_delete'  },
-                        { data: 'image', name: 'products.image'  },
+                        { data: 'image', name: 'products.image',visible: false  },
                         { data: 'action', name: 'action'},
                         { data: 'product', name: 'products.name'  },
-                        { data: 'product_locations', name: 'product_locations'  },
+                        { data: 'product_locations', name: 'product_locations',visible: false  },
                         @can('view_purchase_price')
                             { data: 'purchase_price', name: 'max_purchase_price', searchable: false},
                         @endcan
@@ -208,11 +208,11 @@
                             { data: 'selling_price', name: 'max_price', searchable: false},
                         @endcan
                         { data: 'current_stock', searchable: false},
-                        { data: 'type', name: 'products.type'},
-                        { data: 'category', name: 'c1.name'},
+                        { data: 'type', name: 'products.type',visible: false},
+                        { data: 'category', name: 'c1.name',visible: false},
                         { data: 'brand', name: 'brands.name'},
-                        { data: 'tax', name: 'tax_rates.name', searchable: false},
-                        { data: 'sku', name: 'products.sku'},
+                        { data: 'tax', name: 'tax_rates.name', searchable: false,visible: false},
+                        { data: 'sku', name: 'products.sku',visible: false},
                         { data: 'product_custom_field1', name: 'products.product_custom_field1', visible: $('#cf_1').text().length > 0  },
                         { data: 'product_custom_field2', name: 'products.product_custom_field2' , visible: $('#cf_2').text().length > 0},
                         { data: 'product_custom_field3', name: 'products.product_custom_field3', visible: $('#cf_3').text().length > 0},
