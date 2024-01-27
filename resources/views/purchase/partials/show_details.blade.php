@@ -153,10 +153,13 @@
               @endif
               <th class="text-right">@if($purchase->type == 'purchase_order') @lang('lang_v1.order_quantity') @else @lang('purchase.purchase_quantity') @endif</th>
               <th class="text-right">@lang( 'lang_v1.unit_cost_before_discount' )</th>
+              @if(!session('business.enable_lot_number'))
               <th class="text-right">@lang( 'lang_v1.discount_percent' )</th>
+              
               <th class="no-print text-right">@lang('purchase.unit_cost_before_tax')</th>
               <th class="no-print text-right">@lang('purchase.subtotal_before_tax')</th>
               <th class="text-right">@lang('sale.tax')</th>
+              @endif
               <th class="text-right">@lang('purchase.unit_cost_after_tax')</th>
               @if($purchase->type != 'purchase_order')
               @if(session('business.enable_lot_number'))
@@ -204,10 +207,13 @@
 
               </td>
               <td class="text-right"><span class="display_currency" data-currency_symbol="true">{{ $purchase_line->pp_without_discount}}</span></td>
+              @if(!session('business.enable_lot_number'))
               <td class="text-right"><span class="display_currency">{{ $purchase_line->discount_percent}}</span> %</td>
+              
               <td class="no-print text-right"><span class="display_currency" data-currency_symbol="true">{{ $purchase_line->purchase_price }}</span></td>
               <td class="no-print text-right"><span class="display_currency" data-currency_symbol="true">{{ $purchase_line->quantity * $purchase_line->purchase_price }}</span></td>
               <td class="text-right"><span class="display_currency" data-currency_symbol="true">{{ $purchase_line->item_tax }} </span> <br/><small>@if(!empty($taxes[$purchase_line->tax_id])) ( {{ $taxes[$purchase_line->tax_id]}} ) </small>@endif</td>
+              @endif
               <td class="text-right"><span class="display_currency" data-currency_symbol="true">{{ $purchase_line->purchase_price_inc_tax }}</span></td>
               @if($purchase->type != 'purchase_order')
               @if(session('business.enable_lot_number'))
