@@ -905,6 +905,7 @@ class ContactController extends Controller
 
             $contacts = Contact::where('contacts.business_id', $business_id)
                             ->leftjoin('customer_groups as cg', 'cg.id', '=', 'contacts.customer_group_id')
+                            ->leftjoin('user_contact_access as ca','ca.contact_id','=','contacts.id')//Muestra id del usuario que tiene acceso a este cliente LAESTRADA
                             ->active();
 
             if (! request()->has('all_contact')) {
@@ -945,7 +946,8 @@ class ContactController extends Controller
                 'export_custom_field_3',
                 'export_custom_field_4',
                 'export_custom_field_5',
-                'export_custom_field_6'
+                'export_custom_field_6',
+                'ca.user_id'//Muestra id del usuario que tiene acceso a este cliente LAESTRADA
             );
 
             if (request()->session()->get('business.enable_rp') == 1) {
