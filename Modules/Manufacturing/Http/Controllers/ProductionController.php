@@ -324,11 +324,11 @@ class ProductionController extends Controller
 
             //Create Sell Transfer transaction
             $production_sell = Transaction::create($transaction_sell_data);
-
+            
             if (! empty($sell_lines)) {
                 $this->transactionUtil->createOrUpdateSellLines($production_sell, $sell_lines, $transaction_sell_data['location_id'], null, null, ['mfg_waste_percent' => 'mfg_waste_percent', 'mfg_ingredient_group_id' => 'mfg_ingredient_group_id']);
             }
-
+            dd($sell_lines);
             if ($production_sell->status == 'final') {
                 foreach ($sell_lines as $sell_line) {
                     if ($sell_line['enable_stock']) {
@@ -341,7 +341,7 @@ class ProductionController extends Controller
                         );
                     }
                 }
-
+                
                 $business_details = $this->businessUtil->getDetails($business_id);
                 $pos_settings = empty($business_details->pos_settings) ? $this->businessUtil->defaultPosSettings() : json_decode($business_details->pos_settings, true);
 
@@ -351,6 +351,8 @@ class ProductionController extends Controller
                     'location_id' => $production_sell->location_id,
                     'pos_settings' => $pos_settings,
                 ];
+                // Nota para Luis del Futuro: $production_sell->sell_lines lleva el lot_num_id, mapPurchaseSell iserta la transaccion
+                // aún no se donde se obtiene la data porque empezaron a gritar la gente, animo!!!
                 $this->transactionUtil->mapPurchaseSell($business, $production_sell->sell_lines, 'production_purchase');
             }
 
