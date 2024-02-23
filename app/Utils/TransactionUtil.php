@@ -200,7 +200,7 @@ class TransactionUtil extends Util
             'source' => isset($input['source']) ? $input['source'] : $transaction->source,
             'additional_notes' => ! empty($input['sale_note']) ? $input['sale_note'] : null,
             'staff_note' => ! empty($input['staff_note']) ? $input['staff_note'] : null,
-            'custom_field_1' => ! empty($input['custom_field_1']) ? $input['custom_field_1'] : null,
+            'custom_field_1' => ! empty($input['envi_no']) ? $input['envi_no'] : null, // laestrada No envio sierra madre
             'custom_field_2' => ! empty($input['custom_field_2']) ? $input['custom_field_2'] : null,
             'custom_field_3' => ! empty($input['custom_field_3']) ? $input['custom_field_3'] : null,
             'custom_field_4' => ! empty($input['custom_field_4']) ? $input['custom_field_4'] : null,
