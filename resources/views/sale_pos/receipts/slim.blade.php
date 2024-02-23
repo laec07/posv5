@@ -363,12 +363,13 @@
                 <thead class="border-bottom-dotted">
                     <tr>
                         <th class="serial_number">#</th>
+                        <th class="quantity text-left">
+                        	{{$receipt_details->table_qty_label}}
+                        </th>
                         <th class="description" width="30%">
                         	{{$receipt_details->table_product_label}}
                         </th>
-                        <th class="quantity text-right">
-                        	{{$receipt_details->table_qty_label}}
-                        </th>
+
                         @if(empty($receipt_details->hide_price))
                         <th class="unit_price text-right">
                         	{{$receipt_details->table_unit_price_label}}
@@ -391,6 +392,11 @@
 	                        <td class="serial_number" style="vertical-align: top;">
 	                        	{{$loop->iteration}}
 	                        </td>
+							<td class="quantity text-left">{{$line['quantity']}} {{$line['units']}} @if($receipt_details->show_base_unit_details && $line['quantity'] && $line['base_unit_multiplier'] !== 1)
+                            <br><small>
+                            	{{$line['quantity']}} x {{$line['base_unit_multiplier']}} = {{$line['orig_quantity']}} {{$line['base_unit_name']}}
+                            </small>
+                            @endif</td>
 	                        <td class="description">
 	                        	{{$line['name']}} {{$line['product_variation']}} {{$line['variation']}} 
 	                        	@if(!empty($line['sub_sku'])), {{$line['sub_sku']}} @endif @if(!empty($line['brand'])), {{$line['brand']}} @endif @if(!empty($line['cat_code'])), {{$line['cat_code']}}@endif
@@ -430,11 +436,7 @@
 		                            </small>
 		                            @endif
 	                        </td>
-	                        <td class="quantity text-right">{{$line['quantity']}} {{$line['units']}} @if($receipt_details->show_base_unit_details && $line['quantity'] && $line['base_unit_multiplier'] !== 1)
-                            <br><small>
-                            	{{$line['quantity']}} x {{$line['base_unit_multiplier']}} = {{$line['orig_quantity']}} {{$line['base_unit_name']}}
-                            </small>
-                            @endif</td>
+	                        
 	                        @if(empty($receipt_details->hide_price))
 	                        <td class="unit_price text-right">{{$line['unit_price_before_discount']}}</td>
 

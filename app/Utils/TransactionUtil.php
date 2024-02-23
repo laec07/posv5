@@ -1103,10 +1103,11 @@ class TransactionUtil extends Util
                 if (! empty($customer->contact_address)) {
                     $output['customer_info'] .= '<br>';
                 }
-                $output['customer_info'] .= '<b>'.__('contact.mobile').'</b>: '.$customer->mobile;
+                // Comentado por LAESTRADA para que no muestre numero de cliente en la factura  
+              /*  $output['customer_info'] .= '<b>'.__('contact.mobile').'</b>: '.$customer->mobile;
                 if (! empty($customer->landline)) {
                     $output['customer_info'] .= ', '.$customer->landline;
-                }
+                }*/
             }
 
             $output['customer_tax_number'] = $customer->tax_number;
