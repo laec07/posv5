@@ -709,10 +709,11 @@ class TransactionUtil extends Util
             $transaction = Transaction::findOrFail($transaction);
         }
 
-        //If status is draft don't add payment
+        //If status is draft don't add payment   LAESTRADA
+        /* Se comenta esta validación para poder ingresar anticipos de pagos sin realizar la venta y que no disminuya credito del cliente
         if ($transaction->status == 'draft') {
             return true;
-        }
+        }*/
         $c = 0;
         $prefix_type = 'sell_payment';
         if ($transaction->type == 'purchase') {
