@@ -304,6 +304,8 @@ class ProductionController extends Controller
                 $mfg_waste_percent = ! empty($ingredient_quantities[$variation_details['id']]['mfg_waste_percent']) ? $this->productUtil->num_uf($ingredient_quantities[$variation_details['id']]['mfg_waste_percent']) : 0;
 
                 $mfg_ingredient_group_id = ! empty($ingredient_quantities[$variation_details['id']]['mfg_ingredient_group_id']) ? $ingredient_quantities[$variation_details['id']]['mfg_ingredient_group_id'] : null;
+                //LAESTRADA Se obtiene Número de lote
+                $line_lot_numer_id = ! empty($ingredient_quantities[$variation_details['id']]['lot_number']) ? $ingredient_quantities[$variation_details['id']]['lot_number'] : null;
 
                 $sell_lines[] = [
                     'product_id' => $variation->product_id,
@@ -319,7 +321,8 @@ class ProductionController extends Controller
                     'base_unit_multiplier' => $line_multiplier,
                     'mfg_waste_percent' => $mfg_waste_percent,
                     'mfg_ingredient_group_id' => $mfg_ingredient_group_id,
-                ];
+                    'lot_no_line_id' => $line_lot_numer_id, //laestrada se asigna número de lote
+                ];                
             }
 
             //Create Sell Transfer transaction
@@ -328,7 +331,7 @@ class ProductionController extends Controller
             if (! empty($sell_lines)) {
                 $this->transactionUtil->createOrUpdateSellLines($production_sell, $sell_lines, $transaction_sell_data['location_id'], null, null, ['mfg_waste_percent' => 'mfg_waste_percent', 'mfg_ingredient_group_id' => 'mfg_ingredient_group_id']);
             }
-            dd($sell_lines);
+
             if ($production_sell->status == 'final') {
                 foreach ($sell_lines as $sell_line) {
                     if ($sell_line['enable_stock']) {
@@ -344,7 +347,7 @@ class ProductionController extends Controller
                 
                 $business_details = $this->businessUtil->getDetails($business_id);
                 $pos_settings = empty($business_details->pos_settings) ? $this->businessUtil->defaultPosSettings() : json_decode($business_details->pos_settings, true);
-
+                
                 //Map sell lines with purchase lines
                 $business = ['id' => $business_id,
                     'accounting_method' => $request->session()->get('business.accounting_method'),
@@ -355,7 +358,7 @@ class ProductionController extends Controller
                 // aún no se donde se obtiene la data porque empezaron a gritar la gente, animo!!!
                 $this->transactionUtil->mapPurchaseSell($business, $production_sell->sell_lines, 'production_purchase');
             }
-
+            
             DB::commit();
 
             $output = ['success' => 1,

@@ -17,7 +17,7 @@
 		}
 		@endphp
 		@if(!empty($ingredient['lot_numbers']))
-			<select class="form-control lot_number input-sm" name="ingredient[{{$ingredient['id']}}][lot_number]">
+			<select class="form-control lot_number input-sm" name="ingredients[{{$ingredient['id']}}][lot_number]">
 				<option value="">@lang('lang_v1.lot_n_expiry')</option>
 				@foreach($ingredient['lot_numbers'] as $lot_number)
 					@php
