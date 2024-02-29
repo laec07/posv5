@@ -2260,7 +2260,7 @@ class ReportController extends Controller
             ->whereNotNull('pl.lot_number')
             ->groupBy('v.id')
             ->groupBy('pl.lot_number')
-            ->havingRaw('stock > 0');
+            ->havingRaw('stock > 0'); //LAESTRADA   Muestra solo lotes con stock disponible
 
             return Datatables::of($products)
                 ->editColumn('stock', function ($row) {
