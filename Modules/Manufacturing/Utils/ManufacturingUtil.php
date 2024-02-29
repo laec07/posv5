@@ -9,6 +9,7 @@ use App\Utils\Util;
 use App\Utils\ProductUtil;
 use App\PurchaseLine;
 use App\Variation;
+use App\Product;
 use DB;
 use Modules\Manufacturing\Entities\MfgRecipeIngredient;
 
@@ -111,33 +112,45 @@ class ManufacturingUtil extends Util
     /**
      * Lotes LAESTRADA.
      * Se traslada funcion de obtención de lotes a este controlador 
+     * Se modifica el query ya que el anterior mostraba todos los lotes aunque no tengan stock
      * @return array
      */
     public function getLotNumbersFromVariation($variation_id, $business_id, $location_id, $exclude_empty_lot = false)
     {
-        $query = PurchaseLine::join(
-            'transactions as T',
-            'purchase_lines.transaction_id',
+
+        $query = Product::where('products.business_id', $business_id)
+        ->leftjoin('units', 'products.unit_id', '=', 'units.id')
+        ->join('variations as v', 'products.id', '=', 'v.product_id')
+        ->join('purchase_lines as pl', 'v.id', '=', 'pl.variation_id')
+        ->leftjoin(
+            'transaction_sell_lines_purchase_lines as tspl',
+            'pl.id',
             '=',
-            'T.id'
+            'tspl.purchase_line_id'
         )
-                                        ->where('T.business_id', $business_id)
-                                        ->where('T.location_id', $location_id)
-                                        ->where('purchase_lines.variation_id', $variation_id);
+        ->join('transactions as t', 'pl.transaction_id', '=', 't.id');
 
-        //If expiry is disabled
-        if (request()->session()->get('business.enable_product_expiry') == 0) {
-            $query->whereNotNull('purchase_lines.lot_number');
-        }
-        if ($exclude_empty_lot) {
-            $query->whereRaw('(purchase_lines.quantity_sold + purchase_lines.quantity_adjusted + purchase_lines.quantity_returned) < purchase_lines.quantity');
-        } else {
-            $query->whereRaw('(purchase_lines.quantity_sold + purchase_lines.quantity_adjusted + purchase_lines.quantity_returned) <= purchase_lines.quantity');
-        }
-
-        $purchase_lines = $query->select('purchase_lines.id as purchase_line_id', 'lot_number', 'purchase_lines.exp_date as exp_date', DB::raw('(purchase_lines.quantity - (purchase_lines.quantity_sold + purchase_lines.quantity_adjusted + purchase_lines.quantity_returned)) AS qty_available'))->get();
+        $purchase_lines = $query->select(
+            'pl.id as purchase_line_id',
+            'pl.lot_number',
+            'pl.exp_date as exp_date',
+            DB::raw("( COALESCE((SELECT SUM(quantity - quantity_returned) 
+            FROM purchase_lines AS pls 
+            WHERE pls.variation_id = v.id 
+                  AND pls.lot_number = pl.lot_number), 0) - 
+            SUM(COALESCE((tspl.quantity - tspl.qty_returned), 0))) AS qty_available")
+        )
+        ->whereNotNull('pl.lot_number')
+        ->where('products.business_id', $business_id)
+        ->where('v.id', $variation_id)
+        ->where('t.location_id', $location_id)
+        ->groupBy('v.id', 'pl.lot_number')
+        ->havingRaw('qty_available > 0')
+        ->get();
 
         return $purchase_lines;
+
+        
     }
 
     /**
