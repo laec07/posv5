@@ -8,7 +8,8 @@
             <th>@lang('messages.date')</th>
             <th>@lang('sale.invoice_no')</th>
             <th>@lang('sale.customer_name')</th>
-            <th>@lang('lang_v1.contact_no')</th>
+            <th>@lang('sale.sm_envio')</th> <!-- laestrada para sierra madre No envio -->
+          <!--  <th>@lang('lang_v1.contact_no')</th> -->
             <th>@lang('sale.location')</th>
             <th>@lang('sale.payment_status')</th>
             <th>@lang('lang_v1.payment_method')</th>
@@ -25,7 +26,7 @@
             <th>@lang('sale.staff_note')</th>
             <th>@lang('sale.shipping_details')</th>
             <th>@lang('restaurant.table')</th>
-            <th>@lang('restaurant.service_staff')</th>
+            <th>@lang('restaurant.service_staff')</th>  
         </tr>
     </thead>
     <tfoot>

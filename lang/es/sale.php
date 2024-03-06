@@ -32,7 +32,7 @@
      'discount_amount' => 'Importe de descuento',
      'no_recent_transactions' => 'Sin transacciones recientes',
      'final' => 'Final',
-     'invoice_no' => 'Factura no.',
+     'invoice_no' => 'Envío no.',
      'customer_name' => 'Nombre del cliente',
      'payment_status' => 'Estado de pago',
      'status' => 'Estado',
@@ -60,4 +60,5 @@
      'shipping' => 'Transporte',
      'shipping_details' => 'Detalles de envío',
      'shipping_charges' => 'Gastos de envío',
+     'sm_envio' => 'Envío Interno',
  ];

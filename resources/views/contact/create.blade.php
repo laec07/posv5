@@ -63,12 +63,12 @@
             </div>
             <div class="col-md-4 customer_fields">
                 <div class="form-group">
-                  {!! Form::label('customer_group_id', __('lang_v1.customer_group') . ':') !!}
+                  {!! Form::label('customer_group_id', __('lang_v1.customer_group') . ':*') !!}
                   <div class="input-group">
                       <span class="input-group-addon">
                           <i class="fa fa-users"></i>
                       </span>
-                      {!! Form::select('customer_group_id', $customer_groups, '', ['class' => 'form-control']); !!}
+                      {!! Form::select('customer_group_id', $customer_groups, '', ['class' => 'form-control', 'required']); !!} <!-- LAESTRADA -->
                   </div>
                 </div>
             </div>
@@ -115,12 +115,12 @@
         
             <div class="col-md-3">
                 <div class="form-group">
-                    {!! Form::label('mobile', __('contact.mobile') . ':*') !!}
+                    {!! Form::label('mobile', __('contact.mobile') . ':') !!}
                     <div class="input-group">
                         <span class="input-group-addon">
                             <i class="fa fa-mobile"></i>
                         </span>
-                        {!! Form::text('mobile', null, ['class' => 'form-control', 'required', 'placeholder' => __('contact.mobile')]); !!}
+                        {!! Form::text('mobile', 0, ['class' => 'form-control',  'placeholder' => __('contact.mobile')]); !!} <!-- LAESTRADA -->
                     </div>
                 </div>
             </div>
@@ -214,12 +214,12 @@
             @if(config('constants.enable_contact_assign') && $type !== 'lead')
                 <div class="col-md-6">
                       <div class="form-group">
-                          {!! Form::label('assigned_to_users', __('lang_v1.assigned_to') . ':' ) !!}
+                          {!! Form::label('assigned_to_users', __('lang_v1.assigned_to') . ':*' ) !!}
                           <div class="input-group">
                               <span class="input-group-addon">
                                   <i class="fa fa-user"></i>
                               </span>
-                              {!! Form::select('assigned_to_users[]', $users ?? [], null , ['class' => 'form-control select2', 'id' => 'assigned_to_users', 'multiple', 'style' => 'width: 100%;']); !!}
+                              {!! Form::select('assigned_to_users[]', $users ?? [], null , ['class' => 'form-control select2', 'id' => 'assigned_to_users', 'multiple', 'required', 'style' => 'width: 100%;']); !!} <!-- LAESTRADA -->
                           </div>
                       </div>
                 </div>

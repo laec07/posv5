@@ -86,16 +86,17 @@
 						<img style="width: 100%;margin-bottom: 10px;" src="{{$receipt_details->letter_head}}">
 					</div>
 				@endif
+				
 			<div class="border-top textbox-info">
-				<p class="f-left"><strong>{!! $receipt_details->invoice_no_prefix !!}</strong></p>
+				<p class="f-left"><h5>  {!! $receipt_details->invoice_no_prefix !!}: {{$receipt_details->invoice_no}}</h5> </p>
 				<p class="f-right">
-					{{$receipt_details->invoice_no}}
+				<!--{{$receipt_details->invoice_no}}-->
 				</p>
 			</div>
 			<div class="textbox-info">
-				<p class="f-left"><strong>{!! $receipt_details->date_label !!}</strong></p>
+				<p class="f-left"><h5>{!! $receipt_details->date_label !!}: {{$receipt_details->invoice_date}}</h5></p>
 				<p class="f-right">
-					{{$receipt_details->invoice_date}}
+				<!--	{{$receipt_details->invoice_date}}-->
 				</p>
 			</div>
 			
@@ -235,16 +236,17 @@
 
 	        <!-- customer info -->
 	        <div class="textbox-info">
-	        	<p style="vertical-align: top;"><strong>
+	        	<p style="vertical-align: top;"><h5>
 	        		{{$receipt_details->customer_label ?? ''}}
-	        	</strong></p>
+ <!-- </p> -->
 
-	        	<p>
+	        	<!-- <p>-->
 	        		@if(!empty($receipt_details->customer_info))
-	        			<div class="bw">
+	        		<!--	<div class="bw">-->
 						{!! $receipt_details->customer_info !!}
-						</div>
+					<!--	</div> -->
 					@endif
+					</h5>
 	        	</p>
 	        </div>
 			
@@ -362,7 +364,7 @@
             <table style="margin-top: 25px !important" class="border-bottom width-100 table-f-12 mb-10">
                 <thead class="border-bottom-dotted">
                     <tr>
-                        <th class="serial_number">#</th>
+                       <!-- <th class="serial_number">#</th>-->
                         <th class="quantity text-left">
                         	{{$receipt_details->table_qty_label}}
                         </th>
@@ -388,11 +390,12 @@
                 </thead>
                 <tbody>
                 	@forelse($receipt_details->lines as $line)
-	                    <tr>
+	                    <tr><!-- Se elimina Numero de item
 	                        <td class="serial_number" style="vertical-align: top;">
 	                        	{{$loop->iteration}}
-	                        </td>
-							<td class="quantity text-left">{{$line['quantity']}} {{$line['units']}} @if($receipt_details->show_base_unit_details && $line['quantity'] && $line['base_unit_multiplier'] !== 1)
+	                        </td>-->
+							<!-- LAESTRADA Se elimina Unidad para no mostrar en envio-->
+							<td class="quantity text-left">{{$line['quantity']}} <!-- {{$line['units']}}--> @if($receipt_details->show_base_unit_details && $line['quantity'] && $line['base_unit_multiplier'] !== 1)
                             <br><small>
                             	{{$line['quantity']}} x {{$line['base_unit_multiplier']}} = {{$line['orig_quantity']}} {{$line['base_unit_name']}}
                             </small>
@@ -409,7 +412,7 @@
 	                        	@if(!empty($line['sell_line_note']))
 	                        	<br>
 	                        	<span class="f-8">
-	                        	{!!$line['sell_line_note']!!}
+	                        	{!!$line['sell_line_note']!!} holassssdfasdfasfasdfas
 	                        	</span>
 	                        	@endif 
 	                        	@if(!empty($line['lot_number']))<br> {{$line['lot_number_label']}}:  {{$line['lot_number']}} @endif 
@@ -694,10 +697,10 @@
 	            @endif
             @endif
 
-            @if(!empty($receipt_details->additional_notes))
-	            <p class="centered">
-	            	{!! nl2br($receipt_details->additional_notes) !!}
-	            </p>
+            @if(!empty($receipt_details->additional_notes)) <!-- LAESTRADA -->
+	            <h5 >
+	            Nota de venta:	{!! nl2br($receipt_details->additional_notes) !!}
+</h5>
             @endif
 
             {{-- Barcode --}}

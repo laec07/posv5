@@ -43,7 +43,7 @@
                         <th>@lang('messages.date')</th>
                         <th>@lang('sale.invoice_no')</th>
                         <th>@lang('sale.customer_name')</th>
-                        <th>Envio No.</th> <!-- laestrada para sierra madre No envio -->
+                        <th>@lang('sale.sm_envio')</th> <!-- laestrada para sierra madre No envio -->
                         <th>@lang('sale.location')</th>
                         <th>@lang('sale.payment_status')</th>
                         <th>@lang('lang_v1.payment_method')</th>
