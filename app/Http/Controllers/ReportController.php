@@ -2275,30 +2275,6 @@ class ReportController extends Controller
                         return $row->product;
                     }
                 })
-                ->editColumn('t1_price', function ($row) {//LAESTRADA
-                    $t1_price = 0;
-                    if ($row->t1_price) {
-                        $t1_price =  (float)$row->t1_price;
-                    }
-
-                    return '<span class="display_currency t1_price" data-currency_symbol=true data-unit="Q"  data-orig-value="' . $t1_price . '"  >' . $t1_price . '</span> ' ;
-                })
-                ->editColumn('t2_price', function ($row) {//LAESTRADA
-                    $t2_price = 0;
-                    if ($row->t2_price) {
-                        $t2_price =  (float)$row->t2_price;
-                    }
-
-                    return '<span class="display_currency t2_price" data-currency_symbol=true data-unit="Q"  data-orig-value="' . $t2_price . '"  >' . $t2_price . '</span> ' ;
-                })
-                ->editColumn('t3_price', function ($row) {//LAESTRADA
-                    $t3_price = 0;
-                    if ($row->t3_price) {
-                        $t3_price =  (float)$row->t3_price;
-                    }
-
-                    return '<span class="display_currency t3_price" data-currency_symbol=true data-unit="Q"  data-orig-value="' . $t3_price . '"  >' . $t3_price . '</span> ' ;
-                })
                 ->editColumn('total_sold', function ($row) {
                     if ($row->total_sold) {
                         return '<span data-is_quantity="true" class="display_currency total_sold" data-currency_symbol=false data-orig-value="'.(float) $row->total_sold.'" data-unit="'.$row->unit.'" >'.(float) $row->total_sold.'</span> '.$row->unit;
@@ -2333,6 +2309,38 @@ class ReportController extends Controller
                 ->make(true);
         }
 
+//LAESTRADA Se busca el la cantidad disponible del producto agrupandolo por lote.
+        $lots_agroup = Product::where('products.business_id', $business_id)
+        ->leftjoin('units', 'products.unit_id', '=', 'units.id')
+        ->join('variations as v', 'products.id', '=', 'v.product_id')
+        ->join('purchase_lines as pl', 'v.id', '=', 'pl.variation_id')
+        ->leftjoin(
+            'transaction_sell_lines_purchase_lines as tspl',
+            'pl.id',
+            '=',
+            'tspl.purchase_line_id'
+        )
+        ->join('transactions as t', 'pl.transaction_id', '=', 't.id')
+        ->select(
+            'pl.lot_number',
+            'products.name as product_name',
+            'units.short_name as unit',
+            DB::raw("( COALESCE((SELECT SUM(quantity - quantity_returned) 
+            FROM purchase_lines AS pls 
+            WHERE pls.variation_id = v.id 
+                  AND pls.lot_number = pl.lot_number), 0) - 
+            SUM(COALESCE((tspl.quantity - tspl.qty_returned), 0))) AS quantity")
+        )
+        ->whereNotNull('pl.lot_number')
+        ->groupBy('pl.lot_number', 'products.name')
+        ->havingRaw('SUM(pl.quantity) > 0')
+        ->orderBy('pl.lot_number')
+        ->havingRaw('quantity > 0') //LAESTRADA   Muestra solo lotes con stock disponible
+        ->get();
+
+    // Agrupa los productos por número de lote
+    $groupedProducts = $lots_agroup->groupBy('lot_number');
+
         $categories = Category::forDropdown($business_id, 'product');
         $brands = Brands::forDropdown($business_id);
         $units = Unit::where('business_id', $business_id)
@@ -2340,7 +2348,7 @@ class ReportController extends Controller
         $business_locations = BusinessLocation::forDropdown($business_id, true);
 
         return view('report.lot_report')
-            ->with(compact('categories', 'brands', 'units', 'business_locations'));
+            ->with(compact('categories', 'brands', 'units', 'business_locations','groupedProducts'));
     }
 
     /**
