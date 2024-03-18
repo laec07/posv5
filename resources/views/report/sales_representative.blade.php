@@ -101,6 +101,10 @@
                         <a href="#sr_expenses_tab" data-toggle="tab" aria-expanded="true"><i class="fa fa-cog" aria-hidden="true"></i> @lang('expense.expenses')</a>
                     </li>
 
+                    <li>
+                        <a href="#sr_represent_cxc" data-toggle="tab" aria-expanded="true"><i class="fa fa-cog" aria-hidden="true"></i> CXC</a>
+                    </li>
+
                     @if(!empty($pos_settings['cmmsn_calculation_type']) && $pos_settings['cmmsn_calculation_type'] == 'payment_received')
                         <li>
                             <a href="#sr_payments_with_cmmsn_tab" data-toggle="tab" aria-expanded="true"><i class="fa fa-cog" aria-hidden="true"></i> @lang('lang_v1.payments_with_cmmsn')</a>
@@ -119,6 +123,10 @@
 
                     <div class="tab-pane" id="sr_expenses_tab">
                         @include('report.partials.sales_representative_expenses')
+                    </div>
+
+                    <div class="tab-pane" id="sr_represent_cxc">
+                        @include('report.partials.sales_representative_cxc')
                     </div>
 
                     @if(!empty($pos_settings['cmmsn_calculation_type']) && $pos_settings['cmmsn_calculation_type'] == 'payment_received')

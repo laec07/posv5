@@ -648,6 +648,70 @@ $(document).ready(function() {
                 __currency_convert_recursively($('#sr_sales_with_commission'));
             },
         });
+        
+
+        //Sales representative report -> Sales CXC LAESTRADA
+     /*   sr_sales_commission_cxc = $('table#ledgercxc_table').DataTable({
+        
+            processing: true,
+            serverSide: true,
+            aaSorting: [[0, 'desc']],
+            ajax: {
+                url: '/sells',
+                data: function(d) {
+                    var start = $('input#sr_date_filter')
+                        .data('daterangepicker')
+                        .startDate.format('YYYY-MM-DD');
+                    var end = $('input#sr_date_filter')
+                        .data('daterangepicker')
+                        .endDate.format('YYYY-MM-DD');
+
+                    (d.commission_agent = $('select#sr_id').val()),
+                        (d.location_id = $('select#sr_business_id').val()),
+                        (d.start_date = start),
+                        (d.end_date = end);
+                },
+            },
+            columns: [
+                { data: 'client_name', name: 'client_name' },
+                { data: 'invoice_no', name: 'invoice_no' },
+                { data: 'conatct_name', name: 'conatct_name' },
+                { data: 'business_location', name: 'bl.name' },
+                { data: 'payment_status', name: 'payment_status' },
+                { data: 'final_total', name: 'final_total' },
+                { data: 'total_paid', name: 'total_paid' },
+                { data: 'total_remaining', name: 'total_remaining' },
+            ],
+            columnDefs: [
+                {
+                    searchable: false,
+                    targets: [6],
+                },
+            ],
+            fnDrawCallback: function(oSettings) {
+                $('#footer_sale_total').text(
+                    sum_table_col($('#ledgercxc_table'), 'final-total')
+                );
+
+                $('#footer_total_paid').text(
+                    sum_table_col($('#ledgercxc_table'), 'total-paid')
+                );
+
+                $('#footer_total_remaining').text(
+                    sum_table_col($('#ledgercxc_table'), 'payment_due')
+                );
+                $('#footer_total_sell_return_due').text(
+                    sum_table_col($('#ledgercxc_table'), 'sell_return_due')
+                );
+
+                $('#footer_payment_status_count ').html(
+                    __sum_status_html($('#ledgercxc_table'), 'payment-status-label')
+                );
+                __currency_convert_recursively($('#ledgercxc_table'));
+                __currency_convert_recursively($('#ledgercxc_table'));
+            },
+        });*/
+        // Fin LAESTRADA
 
         //Sales representive filter
         $('select#sr_id, select#sr_business_id').change(function() {
@@ -1636,6 +1700,7 @@ function updateSalesRepresentativeReport() {
     sr_expenses_report.ajax.reload();
     sr_sales_report.ajax.reload();
     sr_sales_commission_report.ajax.reload();
+    sr_sales_commission_cxc.ajax.reload();
 
     if ($('#sr_payments_with_commission_table').length > 0) {
         sr_payments_with_commission_report.ajax.reload();
