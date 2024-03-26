@@ -1170,71 +1170,118 @@ class ReportController extends Controller
         $commission_agent = $request->get('commission_agent');
 
         $users = User::allUsersDropdown($business_id, false);
-        $ledger_details =  $this->getCxcRepresentativeTotal($commission_agent);
         $business_locations = BusinessLocation::forDropdown($business_id, true);
 
         $business_details = $this->businessUtil->getDetails($business_id);
         $pos_settings = empty($business_details->pos_settings) ? $this->businessUtil->defaultPosSettings() : json_decode($business_details->pos_settings, true);
 
 
-        // Inicializar arreglo para almacenar los totales por cliente y rango de días
-        $grouped_transactions = [];
-        // Obtener la fecha actual
-        $today = now();
-        // Iterar sobre las transacciones para calcular los totales por cliente y rango de días
-        foreach ($ledger_details as $transaction) {
-            $days_diff = $today->diffInDays($transaction['date']);
-            // Agrupar por cliente
-            $client_name = $transaction['name'];
-            // Determinar el rango de días de antigüedad
-            if ($days_diff >= 0 && $days_diff <= 30) {
-                $range = '0 - 30 días';
-            } elseif ($days_diff > 30 && $days_diff <= 60) {
-                $range = '31 - 60 días';
-            } elseif ($days_diff > 60 && $days_diff <= 90) {
-                $range = '61 - 90 días';
-            } elseif ($days_diff > 90 && $days_diff <= 120) {
-                $range = '91 - 120 días';
-            } else {
-                $range = 'Más de 120 días';
-            }
-            // Sumar la deuda al total correspondiente en el arreglo
-            $grouped_transactions[$client_name][$range] = ($grouped_transactions[$client_name][$range] ?? 0) + $transaction['total_due'];
-            $grouped_transactions_json  = json_encode($grouped_transactions);
-        }
+    
 
         return view('report.sales_representative')
-                ->with(compact('users', 'business_locations', 'pos_settings',  'grouped_transactions'));
+                ->with(compact('users', 'business_locations', 'pos_settings'));
+    }
+    /**
+     * Shows sales representative report
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function getCxcRepresentativeTotal(Request $request)
+    {
+        if ($request->ajax()) {
+            $commission_agent = $request->get('commission_agent');
+
+            // Obtener los datos de transacciones
+            $query  = Transaction::select(
+                'c.name',
+                'transactions.id as transaction_id',
+                'transactions.commission_agent',
+                'transactions.type',
+                'transactions.status',
+                'transactions.final_total',
+                'transactions.payment_status',
+                'transactions.transaction_date as date',
+                'transactions.transaction_date as due_date',
+                'transactions.ref_no',
+                DB::raw('transactions.final_total - COALESCE(SUM(transaction_payments.amount), 0) as total_due')
+            )
+                ->leftJoin('transaction_payments', 'transactions.id', '=', 'transaction_payments.transaction_id')
+                ->join('contacts as c', 'c.id', '=', 'transactions.contact_id')
+                ->where('transactions.business_id', 8)
+                ->where('transactions.type', 'sell')
+                ->whereIn('transactions.payment_status', ['due', 'partial'])
+                ->groupBy('transactions.id', 'transactions.commission_agent', 'transactions.type', 'transactions.status', 'transactions.final_total');
+                
+                
+                if (! empty($commission_agent)) {
+                    $query->where('transactions.commission_agent', $commission_agent);
+                   
+                }    
+                $cxc_transactions = $query->get();
+
+            // Inicializar arreglo para almacenar los totales por cliente y rango de días
+            $grouped_transactions = [];
+            // Obtener la fecha actual
+            $today = now();
+            // Iterar sobre las transacciones para calcular los totales por cliente y rango de días
+            foreach ($cxc_transactions as $transaction) {
+                $days_diff = $today->diffInDays($transaction->date);
+                // Agrupar por cliente
+                $client_name = $transaction->name;
+                // Sumar la deuda al total correspondiente en el arreglo
+                $grouped_transactions[$client_name]['saldo_actual'] = ($grouped_transactions[$client_name]['saldo_actual'] ?? 0) + $transaction->total_due;
+                // Determinar el rango de días de antigüedad
+                if ($days_diff >= 0 && $days_diff <= 30) {
+                    $range = '0 - 30 días';
+                } elseif ($days_diff > 30 && $days_diff <= 60) {
+                    $range = '31 - 60 días';
+                } elseif ($days_diff > 60 && $days_diff <= 90) {
+                    $range = '61 - 90 días';
+                } elseif ($days_diff > 90 && $days_diff <= 120) {
+                    $range = '91 - 120 días';
+                } else {
+                    $range = 'Más de 120 días';
+                }
+                // Sumar la deuda al total correspondiente en el arreglo
+                $grouped_transactions[$client_name][$range] = ($grouped_transactions[$client_name][$range] ?? 0) + $transaction->total_due;
+            }
+
+            // Formatear los datos según el formato esperado por DataTables
+            $formatted_data = [];
+            foreach ($grouped_transactions as $client_name => $ranges) {
+                $row = [
+                    'client_name' => $client_name,
+                ];
+
+            // Agregar los campos correspondientes a cada rango de días, mostrando 0 si no hay datos y aplicando formato de moneda y span para ser leido por datatable
+            $row = [
+                'client_name' => $client_name,
+                'saldo_actual' => '<span class="saldo-actual" data-orig-value='.($ranges['saldo_actual'] ?? 0).'>' . ($this->transactionUtil->num_f($ranges['saldo_actual'] ?? 0, true)) . '</span>',
+                '0_30' => '<span class="0-30" data-orig-value='.($ranges['0 - 30 días'] ?? 0).'>' . ($this->transactionUtil->num_f($ranges['0 - 30 días'] ?? 0,true)) . '</span>',
+                '31_60' => '<span class="31-60" data-orig-value='.($ranges['31 - 60 días'] ?? 0).'>' . ($this->transactionUtil->num_f($ranges['31 - 60 días'] ?? 0,true)) . '</span>',
+                '61_60' => '<span class="61-90" data-orig-value='.($ranges['61 - 90 días'] ?? 0).'>' . ($this->transactionUtil->num_f($ranges['61 - 90 días'] ?? 0,true)) . '</span>',
+                '91_120' => '<span class="91-120" data-orig-value='.($ranges['91 - 120 días'] ?? 0).'>' . ($this->transactionUtil->num_f($ranges['91 - 120 días'] ?? 0,true)) . '</span>',
+                '120_mas' => '<span class="120-mas" data-orig-value='.($ranges['Más de 120 días'] ?? 0).'>' . ($this->transactionUtil->num_f($ranges['Más de 120 días'] ?? 0,true)) . '</span>',
+            ];
+
+                $formatted_data[] = $row;
+            }
+
+            // Crear la respuesta con el formato requerido por DataTables
+            $response = [
+                'draw' => 1, // Este valor debe coincidir con el número de la solicitud de DataTables
+                'recordsTotal' => count($formatted_data), // El número total de registros (antes de aplicar cualquier filtro)
+                'recordsFiltered' => count($formatted_data), // El número total de registros después de aplicar los filtros
+                'data' => $formatted_data, // Los datos a mostrar en la tabla
+            ];
+
+            // Devolver la respuesta en formato JSON
+            return response()->json($response);
+        }
+
     }
 
-    public function getCxcRepresentativeTotal($commission_agent){
-        if ($commission_agent != NULL) {
-            dd($commission_agent);
-        }
-        $cxc_transactions = Transaction::select(
-            'c.name',
-            'transactions.id as transaction_id',
-            'transactions.commission_agent',
-            'transactions.type',
-            'transactions.status',
-            'transactions.final_total',
-            'transactions.payment_status',
-            'transactions.transaction_date as date',
-            'transactions.transaction_date as due_date',
-            'transactions.ref_no',
-            DB::raw('transactions.final_total - COALESCE(SUM(transaction_payments.amount), 0) as total_due')
-        )
-            ->leftJoin('transaction_payments', 'transactions.id', '=', 'transaction_payments.transaction_id')
-            ->join('contacts as c','c.id','=','transactions.contact_id')
-            ->where('transactions.business_id', 8)
-            ->where('transactions.type', 'sell')
-            ->whereIn('transactions.payment_status', ['due', 'partial'])
-            ->groupBy('transactions.id', 'transactions.commission_agent', 'transactions.type', 'transactions.status', 'transactions.final_total')
-            ->get();
-    // Convertir la colección en un array
-    $cxc_transactions_array = $cxc_transactions->toArray();
-        return $cxc_transactions_array;
-    }
+    /********************************************************* */
     /**
      * Shows sales representative total expense
      *
@@ -1348,7 +1395,6 @@ class ReportController extends Controller
 
             //Get Commision
             $total_commission = $commission_percentage * $sell_details['total_sales_with_commission'] / 100;
-
             return ['total_sales_with_commission' => $sell_details['total_sales_with_commission'],
                 'total_commission' => $total_commission,
                 'commission_percentage' => $commission_percentage,

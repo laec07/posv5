@@ -61,9 +61,9 @@
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="form-group">
-                        {!! Form::label('sr_id',  __('report.user') . ':') !!}
-                        {!! Form::select('sr_id', $users, null, ['class' => 'form-control select2', 'style' => 'width:100%', 'placeholder' => __('report.all_users')]); !!}
+                    <div class="form-group"><!-- Se agrega este filtro como sr_id2 para no interferir con otros reportes LAESTRADA-->
+                        {!! Form::label('sr_id2',  __('report.user') . ':') !!}
+                        {!! Form::select('sr_id2', $users, null, ['class' => 'form-control select2', 'style' => 'width:100%', 'placeholder' => __('report.all_users')]); !!}
                     </div>
                 </div>
                 <div class="col-md-3">
@@ -239,7 +239,7 @@
     <script src="{{ asset('js/report.js?v=' . $asset_v) }}"></script>
     <script type="text/javascript">
         $(
-        '#product_sell_report_form #location_id, #product_sell_report_form #customer_id, #psr_filter_brand_id, #psr_filter_category_id, #psr_customer_group_id, #sr_id, #sell_list_filter_payment_status '
+        '#product_sell_report_form #location_id, #product_sell_report_form #customer_id, #psr_filter_brand_id, #psr_filter_category_id, #psr_customer_group_id, #sr_id2, #sell_list_filter_payment_status '
     ).change(function() {
         $('.nav-tabs li.active').find('a[data-toggle="tab"]').trigger('shown.bs.tab');
     });
@@ -278,7 +278,7 @@
                                         d.customer_id = $('select#customer_id').val();
                                         d.location_id = $('select#location_id').val();
                                         d.customer_group_id = $('#psr_customer_group_id').val();
-                                        d.user = ('select#sr_id').val();
+                                        d.user = ('select#sr_id2').val();
                                         d.status_pais = ('select#sell_list_filter_payment_status').val();
                                     },
                                 },
@@ -336,7 +336,7 @@
                                         d.customer_id = $('select#customer_id').val();
                                         d.location_id = $('select#location_id').val();
                                         d.customer_group_id = $('#psr_customer_group_id').val();
-                                        d.user = ('select#sr_id').val();
+                                        d.user = ('select#sr_id2').val();
                                         d.status_pais = ('select#sell_list_filter_payment_status').val();
                                     },
                                 },

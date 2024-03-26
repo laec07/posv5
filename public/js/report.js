@@ -619,12 +619,14 @@ $(document).ready(function() {
                 { data: 'total_paid', name: 'total_paid' },
                 { data: 'total_remaining', name: 'total_remaining' },
             ],
+            
             columnDefs: [
                 {
                     searchable: false,
                     targets: [6],
                 },
             ],
+            
             fnDrawCallback: function(oSettings) {
                 $('#footer_sale_total').text(
                     sum_table_col($('#sr_sales_with_commission_table'), 'final-total')
@@ -649,15 +651,22 @@ $(document).ready(function() {
             },
         });
         
-
+    function reloadcxc(){
+     //   var sr_id = $('select#sr_id').val();
+      //  var titulo = "Cuentas por cobrar agente:"
+        // Agregar título a la tabla
+      //  $('table#ledgercxc_table').before('<h3>'+titulo+ +sr_id +'</h3>');
         //Sales representative report -> Sales CXC LAESTRADA
-     /*   sr_sales_commission_cxc = $('table#ledgercxc_table').DataTable({
-        
+        sr_sales_commission_cxc = $('table#ledgercxc_table').DataTable({
+            
             processing: true,
             serverSide: true,
+            paging: false, // Desactiva la paginación
+            searching: false, // Desactiva la búsqueda
+            ordering: false, // Desactivar la ordenación de la tabla
             aaSorting: [[0, 'desc']],
             ajax: {
-                url: '/sells',
+                url: '/reports/sales-representative-cxc',
                 data: function(d) {
                     var start = $('input#sr_date_filter')
                         .data('daterangepicker')
@@ -665,8 +674,8 @@ $(document).ready(function() {
                     var end = $('input#sr_date_filter')
                         .data('daterangepicker')
                         .endDate.format('YYYY-MM-DD');
-
-                    (d.commission_agent = $('select#sr_id').val()),
+        
+                        (d.commission_agent = $('select#sr_id').val()),
                         (d.location_id = $('select#sr_business_id').val()),
                         (d.start_date = start),
                         (d.end_date = end);
@@ -674,47 +683,94 @@ $(document).ready(function() {
             },
             columns: [
                 { data: 'client_name', name: 'client_name' },
-                { data: 'invoice_no', name: 'invoice_no' },
-                { data: 'conatct_name', name: 'conatct_name' },
-                { data: 'business_location', name: 'bl.name' },
-                { data: 'payment_status', name: 'payment_status' },
-                { data: 'final_total', name: 'final_total' },
-                { data: 'total_paid', name: 'total_paid' },
-                { data: 'total_remaining', name: 'total_remaining' },
+                { data: 'saldo_actual', name: 'saldo_actual' },
+                { data: '0_30', name: '0_30' },
+                { data: '31_60', name: '31_60' },
+                { data: '61_60', name: '61_60' },
+                { data: '91_120', name: '91_120' },
+                { data: '120_mas', name: '120_mas' },
             ],
             columnDefs: [
                 {
                     searchable: false,
-                    targets: [6],
+                    targets: [5],
+
                 },
             ],
+    /*        dom: 'Bfrtip', // Agrega botones a la parte superior derecha de la tabla
+            buttons: [
+                {
+                    extend: 'excel',
+                    text: 'Exportar a Excel',
+                    customize: function(xlsx) {
+                        var sheet = xlsx.xl.worksheets['sheet1.xml'];
+                        // Agregar título al archivo de Excel
+                        $('row c[r^="A1"]', sheet).each(function() {
+                            $('is t', this).text('Ventas del agente: xxxx');
+                        });
+                    }
+                },
+                {
+                    extend: 'copy',
+                    text: 'Copiar',
+                    customize: function(e) {
+                        e.message += '\n\nVentas del agente: xxxx';
+                    }
+                },
+                {
+                    extend: 'pdf',
+                    text: 'Exportar a PDF',
+                    customize: function(doc) {
+                        doc.content[1].text = 'Ventas del agente: ' + sr_id;
+                    }
+                },
+                {
+                    extend: 'print',
+                    text: 'Imprimir',
+                    customize: function(win) {
+                        $(win.document.body).find('h1').append('Ventas del agente:'+ sr_id);
+                    }
+                }
+            ],*/
             fnDrawCallback: function(oSettings) {
-                $('#footer_sale_total').text(
-                    sum_table_col($('#ledgercxc_table'), 'final-total')
+
+                $('#footer_cxc_saldo_actual').text(
+                    sum_table_col($('#ledgercxc_table'), 'saldo-actual')
                 );
 
-                $('#footer_total_paid').text(
-                    sum_table_col($('#ledgercxc_table'), 'total-paid')
+                $('#footer_cxc_030').text(
+                    sum_table_col($('#ledgercxc_table'), '0-30')
                 );
 
-                $('#footer_total_remaining').text(
-                    sum_table_col($('#ledgercxc_table'), 'payment_due')
+                $('#footer_cxc_3160').text(
+                    sum_table_col($('#ledgercxc_table'), '31-60')
                 );
-                $('#footer_total_sell_return_due').text(
-                    sum_table_col($('#ledgercxc_table'), 'sell_return_due')
+                $('#footer_cxc_6190').text(
+                    sum_table_col($('#ledgercxc_table'), '61-90')
                 );
-
-                $('#footer_payment_status_count ').html(
-                    __sum_status_html($('#ledgercxc_table'), 'payment-status-label')
+                $('#footer_cxc_91120').text(
+                    sum_table_col($('#ledgercxc_table'), '91-120')
                 );
-                __currency_convert_recursively($('#ledgercxc_table'));
+                $('#footer_cxc_120mas').text(
+                    sum_table_col($('#ledgercxc_table'), '120-mas')
+                );
+        
                 __currency_convert_recursively($('#ledgercxc_table'));
             },
-        });*/
-        // Fin LAESTRADA
 
+        });
+        
+        
+        
+        // Fin LAESTRADA
+    }
+    reloadcxc();
         //Sales representive filter
         $('select#sr_id, select#sr_business_id').change(function() {
+            if ($.fn.DataTable.isDataTable('#ledgercxc_table')) {
+                $('#ledgercxc_table').DataTable().destroy();
+            }
+            reloadcxc();
             updateSalesRepresentativeReport();
         });
     }
@@ -1139,7 +1195,7 @@ $(document).ready(function() {
     });
 
     $(//laestrada se agrega variables del filtro para recargar tabla
-        '#psr_customer_group_id, #psr_filter_category_id, #psr_filter_brand_id, #product_sell_report_form #variation_id, #product_sell_report_form #location_id, #product_sell_report_form #customer_id,#sell_list_filter_payment_status,#sr_id'
+        '#psr_customer_group_id, #psr_filter_category_id, #psr_filter_brand_id, #product_sell_report_form #variation_id, #product_sell_report_form #location_id, #product_sell_report_form #customer_id,#sell_list_filter_payment_status,#sr_id2'
     ).change(function() {
         product_sell_report.ajax.reload();
         product_sell_grouped_report.ajax.reload();
@@ -1700,12 +1756,17 @@ function updateSalesRepresentativeReport() {
     sr_expenses_report.ajax.reload();
     sr_sales_report.ajax.reload();
     sr_sales_commission_report.ajax.reload();
-    sr_sales_commission_cxc.ajax.reload();
+
+   
+
+    
 
     if ($('#sr_payments_with_commission_table').length > 0) {
         sr_payments_with_commission_report.ajax.reload();
     }
 }
+
+
 
 function salesRepresentativeTotalExpense() {
     var start = $('input#sr_date_filter')
