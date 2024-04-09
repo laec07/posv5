@@ -88,13 +88,13 @@
 				@endif
 				
 			<div class="border-top textbox-info">
-				<p class="f-left"><h5>  {!! $receipt_details->invoice_no_prefix !!}: {{$receipt_details->invoice_no}}</h5> </p>
+				<p class="f-left"><strong>  {!! $receipt_details->invoice_no_prefix !!}: </strong>{{$receipt_details->invoice_no}} </p>
 				<p class="f-right">
 				<!--{{$receipt_details->invoice_no}}-->
 				</p>
 			</div>
 			<div class="textbox-info">
-				<p class="f-left"><h5>{!! $receipt_details->date_label !!}: {{$receipt_details->invoice_date}}</h5></p>
+				<p class="f-left"><strong>{!! $receipt_details->date_label !!}: </strong>{{$receipt_details->invoice_date}}</p>
 				<p class="f-right">
 				<!--	{{$receipt_details->invoice_date}}-->
 				</p>
@@ -236,8 +236,8 @@
 
 	        <!-- customer info -->
 	        <div class="textbox-info">
-	        	<p style="vertical-align: top;"><h5>
-	        		{{$receipt_details->customer_label ?? ''}}
+	        	<p style="vertical-align: top;"><strong>
+	        		{{$receipt_details->customer_label ?? ''}}: </strong>
  <!-- </p> -->
 
 	        	<!-- <p>-->
@@ -246,7 +246,7 @@
 						{!! $receipt_details->customer_info !!}
 					<!--	</div> -->
 					@endif
-					</h5>
+					</strong>
 	        	</p>
 	        </div>
 			
@@ -389,6 +389,10 @@
                     </tr>
                 </thead>
                 <tbody>
+					<!-- VARIABLE PARA MOSTRAR TOTAL SIN DESCUENTOS -->
+					@php 
+						$total_laec=0;
+					@endphp
                 	@forelse($receipt_details->lines as $line)
 	                    <tr><!-- Se elimina Numero de item
 	                        <td class="serial_number" style="vertical-align: top;">
@@ -441,7 +445,7 @@
 	                        </td>
 	                        
 	                        @if(empty($receipt_details->hide_price))
-	                        <td class="unit_price text-right">{{$line['unit_price_before_discount']}}</td>
+	                        <td class="unit_price text-right">{{$line['unit_price_before_discount']}} </td>
 
 	                        @if(!empty($receipt_details->discounted_unit_price_label))
 								<td class="text-right">
@@ -453,11 +457,19 @@
 								<td class="text-right">
 									{{$line['total_line_discount'] ?? '0.00'}}
 									@if(!empty($line['line_discount_percent']))
-								 		({{$line['line_discount_percent']}}%)
+								 		({{$line['line_discount_percent']}}%) 
 									@endif
 								</td>
 							@endif
-	                        <td class="price text-right">{{$line['line_total']}}</td>
+							<!-- se realiza la siguiente corrección ya que se mostraba el total con descuento de una vez  LAESTRADA (Cod originar *)-->
+							@php 
+							$totales = $line['quantity'] * $line['unit_price_before_discount'];
+							$formatted_totales = number_format($totales, 2); 
+							$total_laec = $total_laec + $totales;
+							$total_laec = number_format($total_laec,2);
+							@endphp
+							<!-- <td class="price text-right">{{$line['line_total']}}</td> * -->
+	                        <td class="price text-right">Q {{$formatted_totales}}</td>  
 	                        @endif
 	                    </tr>
 	                    @if(!empty($line['modifiers']))
@@ -519,8 +531,8 @@
                     <p class="left text-right sub-headings">
                     	{!! $receipt_details->subtotal_label !!}
                     </p>
-                    <p class="width-50 text-right sub-headings">
-                    	{{$receipt_details->subtotal}}
+                    <p class="width-50 text-right sub-headings"> <!-- MODIFICACION SUB TOTAL LAESTRADA -->
+                    	Q {{$total_laec}} 
                     </p>
                 </div>
 
