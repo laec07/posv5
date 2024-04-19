@@ -159,7 +159,7 @@ $(document).ready( function(){
         scrollCollapse: true,
         columns: [
             { data: 'action', name: 'action', orderable: false, "searchable": false},
-            { data: 'transaction_date', name: 'transaction_date'  },
+            { data: 'transaction_date', name:  'transaction_date'  },
             { data: 'invoice_no', name: 'invoice_no'},
             { data: 'conatct_name', name: 'conatct_name'},
             { data: 'custom_field_1', name: 'contacts.mobile'}, //  laestrada para sierra madre No envio

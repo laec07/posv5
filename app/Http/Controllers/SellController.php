@@ -383,14 +383,14 @@ class SellController extends Controller
                                 }
                             }
                         }
-
-                        if (config('constants.enable_download_pdf') && auth()->user()->can('print_invoice') && $sale_type != 'sales_order') {
+                        // Se comenta para habilitar opción descarga PDF LAESTRADA
+                    //    if (config('constants.enable_download_pdf') && auth()->user()->can('print_invoice') && $sale_type != 'sales_order') {
                             $html .= '<li><a href="'.route('sell.downloadPdf', [$row->id]).'" target="_blank"><i class="fas fa-print" aria-hidden="true"></i> '.__('lang_v1.download_pdf').'</a></li>';
 
                             if (! empty($row->shipping_status)) {
                                 $html .= '<li><a href="'.route('packing.downloadPdf', [$row->id]).'" target="_blank"><i class="fas fa-print" aria-hidden="true"></i> '.__('lang_v1.download_paking_pdf').'</a></li>';
                             }
-                        }
+                      //  }
 
                         if (auth()->user()->can('sell.view') || auth()->user()->can('direct_sell.access')) {
                             if (! empty($row->document)) {
@@ -409,7 +409,7 @@ class SellController extends Controller
                         if ($row->type == 'sell') {
                            // if (auth()->user()->can('print_invoice')) { permitir imprimir factura, esto se bloqueaba al quitar permisos para agregar venta
                                 $html .= '<li><a href="#" class="print-invoice" data-href="'.route('sell.printInvoice', [$row->id]).'"><i class="fas fa-print" aria-hidden="true"></i> '.__('lang_v1.print_invoice').'</a></li>
-                                    <li><a href="#" class="print-invoice" data-href="'.route('sell.printInvoice', [$row->id]).'?package_slip=true"><i class="fas fa-file-alt" aria-hidden="true"></i> '.__('lang_v1.packing_slip').'</a></li>';
+                                    <li><a href="#" class="print-invoice" data-href="'.route('sell.printInvoice', [$row->id]).'?package_slip=true"><i class="fas fa-file-alt" aria-hidden="true"></i> '.__('lang_v1.packing_slip').'</a></li>'; 
 
                                 $html .= '<li><a href="#" class="print-invoice" data-href="'.route('sell.printInvoice', [$row->id]).'?delivery_note=true"><i class="fas fa-file-alt" aria-hidden="true"></i> '.__('lang_v1.delivery_note').'</a></li>';
                          //   }
@@ -480,7 +480,7 @@ class SellController extends Controller
                         return '<span class="total-discount" data-orig-value="'.$discount.'">'.$this->transactionUtil->num_f($discount, true).'</span>';
                     }
                 )
-                ->editColumn('transaction_date', '{{@format_datetime($transaction_date)}}')
+                ->editColumn('transaction_date', '{{@format_date($transaction_date)}}')
                 ->editColumn(
                     'payment_status',
                     function ($row) {

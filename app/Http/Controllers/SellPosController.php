@@ -2936,10 +2936,10 @@ class SellPosController extends Controller
      * download pdf for given transaction
      */
     public function downloadPdf($id)
-    {
-        if (! (config('constants.enable_download_pdf') && auth()->user()->can('print_invoice'))) {
+    { //LAESTRADA Se comenta para habilitar Descarga PDF
+       /* if (! (config('constants.enable_download_pdf') && auth()->user()->can('print_invoice'))) {
             abort(403, 'Unauthorized action.');
-        }
+        }*/
 
         $business_id = request()->session()->get('user.business_id');
 
@@ -2948,7 +2948,7 @@ class SellPosController extends Controller
         $location_details = $receipt_contents['location_details'];
         $is_email_attachment = false;
 
-        $blade_file = 'download_pdf';
+        $blade_file = 'slimpdf';
         if (! empty($receipt_details->is_export)) {
             $blade_file = 'download_export_pdf';
         }

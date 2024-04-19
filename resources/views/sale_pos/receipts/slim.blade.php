@@ -468,8 +468,8 @@
 							$total_laec = $total_laec + $totales;
 							$total_laec = number_format($total_laec,2);
 							@endphp
-							<!-- <td class="price text-right">{{$line['line_total']}}</td> * -->
-	                        <td class="price text-right">Q {{$formatted_totales}}</td>  
+							 <td class="price text-right">{{$line['line_total']}}</td> 
+	                      <!--  <td class="price text-right">Q {{$formatted_totales}}</td>  -->
 	                        @endif
 	                    </tr>
 	                    @if(!empty($line['modifiers']))
@@ -532,7 +532,8 @@
                     	{!! $receipt_details->subtotal_label !!}
                     </p>
                     <p class="width-50 text-right sub-headings"> <!-- MODIFICACION SUB TOTAL LAESTRADA -->
-                    	Q {{$total_laec}} 
+                    <!--	Q {{$total_laec}} -->
+						{{$receipt_details->subtotal}}
                     </p>
                 </div>
 
