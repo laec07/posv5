@@ -176,7 +176,7 @@ class PurchaseController extends Controller
                     'final_total',
                     '<span class="final_total" data-orig-value="{{$final_total}}">@format_currency($final_total)</span>'
                 )
-                ->editColumn('transaction_date', '{{@format_datetime($transaction_date)}}')
+                ->editColumn('transaction_date', '{{@format_date($transaction_date)}}')
                 ->editColumn('name', '@if(!empty($supplier_business_name)) {{$supplier_business_name}}, <br> @endif {{$name}}')
                 ->editColumn(
                     'status',
