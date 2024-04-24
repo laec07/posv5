@@ -670,6 +670,7 @@ return [
     'edit_purchase_return' => 'Edit Purchase Return',
     'purchase_return_updated_success' => 'Purchase return updated successfully',
     'profit_by_customer' => 'Profit by customer',
+    'profit_by_agente' => 'Profit by agent',
     'profit_by_day' => 'Profit by day',
     'sunday' => 'Sunday',
     'monday' => 'Monday',

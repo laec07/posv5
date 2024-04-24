@@ -130,6 +130,16 @@ $(document).ready(function() {
             $('#edit_sell_form select[name="pay_term_type"]').val('');
         }
         
+        if(data.user_id){//Carga comisionista si esta en contact_access LAESTRADA
+            $('#add_sell_form select[name="commission_agent"]').val(data.user_id);
+            $('#edit_sell_form select[name="commission_agent"]').val(data.user_id);
+            $('#commission_agent').change();//Recarga combo
+        }else{
+            $('#add_sell_form select[name="commission_agent"]').val('');
+            $('#edit_sell_form select[name="commission_agent"]').val('');
+            $('#commission_agent').change();
+        }
+
         update_shipping_address(data);
         $('#advance_balance_text').text(__currency_trans_from_en(data.balance), true);
         $('#advance_balance').val(data.balance);
@@ -138,7 +148,7 @@ $(document).ready(function() {
             $('#price_group').val(data.selling_price_group_id);
             $('#price_group').change();
         } else {
-            $('#price_group').val('');
+            $('#price_group').val('0');//Correción cuando deja precio de venta en blanco LAESTRADA TODO
             $('#price_group').change();
         }
         if ($('.contact_due_text').length) {

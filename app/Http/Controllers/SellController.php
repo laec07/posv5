@@ -165,7 +165,11 @@ class SellController extends Controller
             }
 
             if (! empty(request()->input('payment_status')) && request()->input('payment_status') != 'overdue') {
-                $sells->where('transactions.payment_status', request()->input('payment_status'));
+                if (request()->input('payment_status') == 'due') {//Se agrega condicion para cuando sea due, muestre las partial y las due LAESTRADA
+                    $sells->whereIn('transactions.payment_status', ['due', 'partial']);
+                }else{
+                    $sells->where('transactions.payment_status', request()->input('payment_status'));
+                }//fin laestrada
             } elseif (request()->input('payment_status') == 'overdue') {
                 $sells->whereIn('transactions.payment_status', ['due', 'partial'])
                     ->whereNotNull('transactions.pay_term_number')
@@ -480,8 +484,19 @@ class SellController extends Controller
                     'payment_status',
                     function ($row) {
                         $payment_status = Transaction::getPaymentStatus($row);
-
                         return (string) view('sell.partials.payment_status', ['payment_status' => $payment_status, 'id' => $row->id]);
+                    }
+                )
+                ->editColumn(
+                    'payment_date',
+                    function ($row) {
+                        $payment_date = Transaction::getPaymentStatusdate($row);
+                        if($payment_date==''){
+                            $payment_date='';
+                        }else{
+                            $payment_date = $this->transactionUtil->format_date($payment_date, true);
+                        }
+                        return $payment_date;
                     }
                 )
                 ->editColumn(
@@ -580,7 +595,7 @@ class SellController extends Controller
                         }
                     }, ]);
 
-            $rawColumns = ['final_total', 'action', 'total_paid', 'total_remaining', 'payment_status', 'invoice_no', 'discount_amount', 'tax_amount', 'total_before_tax', 'shipping_status', 'types_of_service_name', 'payment_methods', 'return_due', 'conatct_name', 'status'];
+            $rawColumns = ['final_total', 'action', 'total_paid', 'total_remaining', 'payment_status','payment_date', 'invoice_no', 'discount_amount', 'tax_amount', 'total_before_tax', 'shipping_status', 'types_of_service_name', 'payment_methods', 'return_due', 'conatct_name', 'status'];
 
             return $datatable->rawColumns($rawColumns)
                       ->make(true);

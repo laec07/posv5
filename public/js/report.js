@@ -152,7 +152,7 @@ $(document).ready(function() {
         },
         "footerCallback": function ( row, data, start, end, display ) {
             var footer_total_stock = 0;
-            var footer_unit_purchase_price =0;
+            var footer_unit_purchase_price =0;//LAESTRADA
             var footer_total_sold = 0;
             var footer_total_transfered = 0;
             var total_adjusted = 0;
@@ -164,8 +164,11 @@ $(document).ready(function() {
                 footer_total_stock += $(data[r].stock).data('orig-value') ? 
                 parseFloat($(data[r].stock).data('orig-value')) : 0;
 
-                footer_unit_purchase_price += $(data[r].unit_purchase_price).data('orig-value') ? 
-                parseFloat($(data[r].unit_purchase_price).data('orig-value')) : 0;
+                footer_unit_purchase_price += data[r].unit_purchase_price ? 
+                parseFloat(data[r].unit_purchase_price) : 0;
+
+                console.log('Hola:',data ); //
+                //console.log('parsedValue:', parsedValue); //
 
                 footer_total_sold += $(data[r].total_sold).data('orig-value') ? 
                 parseFloat($(data[r].total_sold).data('orig-value')) : 0;
@@ -190,13 +193,14 @@ $(document).ready(function() {
             }
 
             $('.footer_total_stock').html(__currency_trans_from_en(footer_total_stock, false));
-            $('.footer_unit_purchase_price').html(__currency_trans_from_en(footer_unit_purchase_price, false));
+            $('.footer_unit_purchase_price').html(__currency_trans_from_en(footer_unit_purchase_price, false)); 
             $('.footer_total_stock_price').html(__currency_trans_from_en(total_stock_price));
             $('.footer_total_sold').html(__currency_trans_from_en(footer_total_sold, false));
             $('.footer_total_transfered').html(__currency_trans_from_en(footer_total_transfered, false));
             $('.footer_total_adjusted').html(__currency_trans_from_en(total_adjusted, false));
             $('.footer_stock_value_by_sale_price').html(__currency_trans_from_en(footer_stock_value_by_sale_price));
             $('.footer_potential_profit').html(__currency_trans_from_en(total_potential_profit));
+           // console.log('footer_unit_purchase_price:', footer_unit_purchase_price);
             if ($('th.current_stock_mfg').length) {
                 $('.footer_total_mfg_stock').html(__currency_trans_from_en(footer_total_mfg_stock, false));
             }
@@ -615,12 +619,14 @@ $(document).ready(function() {
                 { data: 'total_paid', name: 'total_paid' },
                 { data: 'total_remaining', name: 'total_remaining' },
             ],
+            
             columnDefs: [
                 {
                     searchable: false,
                     targets: [6],
                 },
             ],
+            
             fnDrawCallback: function(oSettings) {
                 $('#footer_sale_total').text(
                     sum_table_col($('#sr_sales_with_commission_table'), 'final-total')
@@ -644,9 +650,127 @@ $(document).ready(function() {
                 __currency_convert_recursively($('#sr_sales_with_commission'));
             },
         });
+        
+    function reloadcxc(){
+     //   var sr_id = $('select#sr_id').val();
+      //  var titulo = "Cuentas por cobrar agente:"
+        // Agregar título a la tabla
+      //  $('table#ledgercxc_table').before('<h3>'+titulo+ +sr_id +'</h3>');
+        //Sales representative report -> Sales CXC LAESTRADA
+        sr_sales_commission_cxc = $('table#ledgercxc_table').DataTable({
+            
+            processing: true,
+            serverSide: true,
+            paging: false, // Desactiva la paginación
+            searching: false, // Desactiva la búsqueda
+            ordering: false, // Desactivar la ordenación de la tabla
+            aaSorting: [[0, 'desc']],
+            ajax: {
+                url: '/reports/sales-representative-cxc',
+                data: function(d) {
+                    var start = $('input#sr_date_filter')
+                        .data('daterangepicker')
+                        .startDate.format('YYYY-MM-DD');
+                    var end = $('input#sr_date_filter')
+                        .data('daterangepicker')
+                        .endDate.format('YYYY-MM-DD');
+        
+                        (d.commission_agent = $('select#sr_id').val()),
+                        (d.location_id = $('select#sr_business_id').val()),
+                        (d.start_date = start),
+                        (d.end_date = end);
+                },
+            },
+            columns: [
+                { data: 'client_name', name: 'client_name' },
+                { data: 'saldo_actual', name: 'saldo_actual' },
+                { data: '0_30', name: '0_30' },
+                { data: '31_60', name: '31_60' },
+                { data: '61_60', name: '61_60' },
+                { data: '91_120', name: '91_120' },
+                { data: '120_mas', name: '120_mas' },
+            ],
+            columnDefs: [
+                {
+                    searchable: false,
+                    targets: [5],
 
+                },
+            ],
+    /*        dom: 'Bfrtip', // Agrega botones a la parte superior derecha de la tabla
+            buttons: [
+                {
+                    extend: 'excel',
+                    text: 'Exportar a Excel',
+                    customize: function(xlsx) {
+                        var sheet = xlsx.xl.worksheets['sheet1.xml'];
+                        // Agregar título al archivo de Excel
+                        $('row c[r^="A1"]', sheet).each(function() {
+                            $('is t', this).text('Ventas del agente: xxxx');
+                        });
+                    }
+                },
+                {
+                    extend: 'copy',
+                    text: 'Copiar',
+                    customize: function(e) {
+                        e.message += '\n\nVentas del agente: xxxx';
+                    }
+                },
+                {
+                    extend: 'pdf',
+                    text: 'Exportar a PDF',
+                    customize: function(doc) {
+                        doc.content[1].text = 'Ventas del agente: ' + sr_id;
+                    }
+                },
+                {
+                    extend: 'print',
+                    text: 'Imprimir',
+                    customize: function(win) {
+                        $(win.document.body).find('h1').append('Ventas del agente:'+ sr_id);
+                    }
+                }
+            ],*/
+            fnDrawCallback: function(oSettings) {
+
+                $('#footer_cxc_saldo_actual').text(
+                    sum_table_col($('#ledgercxc_table'), 'saldo-actual')
+                );
+
+                $('#footer_cxc_030').text(
+                    sum_table_col($('#ledgercxc_table'), '0-30')
+                );
+
+                $('#footer_cxc_3160').text(
+                    sum_table_col($('#ledgercxc_table'), '31-60')
+                );
+                $('#footer_cxc_6190').text(
+                    sum_table_col($('#ledgercxc_table'), '61-90')
+                );
+                $('#footer_cxc_91120').text(
+                    sum_table_col($('#ledgercxc_table'), '91-120')
+                );
+                $('#footer_cxc_120mas').text(
+                    sum_table_col($('#ledgercxc_table'), '120-mas')
+                );
+        
+                __currency_convert_recursively($('#ledgercxc_table'));
+            },
+
+        });
+        
+        
+        
+        // Fin LAESTRADA
+    }
+    reloadcxc();
         //Sales representive filter
         $('select#sr_id, select#sr_business_id').change(function() {
+            if ($.fn.DataTable.isDataTable('#ledgercxc_table')) {
+                $('#ledgercxc_table').DataTable().destroy();
+            }
+            reloadcxc();
             updateSalesRepresentativeReport();
         });
     }
@@ -917,6 +1041,8 @@ $(document).ready(function() {
                     d.category_id = $('select#psr_filter_category_id').val();
                     d.brand_id = $('select#psr_filter_brand_id').val();
                     d.customer_group_id = $('#psr_customer_group_id').val();
+                    d.user = $('select#sr_id').val();
+                    d.status_paid = $('select#sell_list_filter_payment_status').val();
                 },
             },
             columns: [
@@ -931,7 +1057,7 @@ $(document).ready(function() {
                 { data: 'sell_qty', name: 'transaction_sell_lines.quantity' },
                 { data: 'unit_purchase_price', name: 'unit_purchase_price' , searchable: false},
                 { data: 'unit_price', name: 'transaction_sell_lines.unit_price_before_discount' },
-                { data: 'diferencia', name: 'diferencia' , searchable: false},
+                { data: 'diferencia', name: 'diferencia' , searchable: false}, //laestrada
                 { data: 'discount_amount', name: 'transaction_sell_lines.line_discount_amount' },
                 { data: 'tax', name: 'tax_rates.name' },
                 { data: 'unit_sale_price', name: 'transaction_sell_lines.unit_price_inc_tax' },
@@ -947,7 +1073,15 @@ $(document).ready(function() {
                     sum_table_col($('#product_sell_report_table'), 'row_subtotal')
                 );
                 $('#footer_total_sold').html(__sum_stock($('#product_sell_report_table'), 'sell_qty'));
+
+                $('#footer_total_difference').html(__sum_stock($('#product_sell_report_table'), 'diferencia'));
+
+                $('#footer_total_paid').html(__sum_stock($('#product_sell_report_table'), 'total_paid'));
+
+                $('#footer_total_remaining').html(__sum_stock($('#product_sell_report_table'), 'total_remaining'));
+
                 $('#footer_tax').html(__sum_stock($('#product_sell_report_table'), 'tax', 'left'));
+                
                 __currency_convert_recursively($('#product_sell_report_table'));
             },
         });
@@ -985,6 +1119,8 @@ $(document).ready(function() {
                 d.category_id = $('select#psr_filter_category_id').val();
                 d.brand_id = $('select#psr_filter_brand_id').val();
                 d.customer_group_id = $('#psr_customer_group_id').val();
+                d.user = $('select#sr_id').val();
+                d.status_paid = $('select#sell_list_filter_payment_status').val();
             },
         },
         columns: [
@@ -1034,6 +1170,8 @@ $(document).ready(function() {
                 d.category_id = $('select#psr_filter_category_id').val();
                 d.brand_id = $('select#psr_filter_brand_id').val();
                 d.customer_group_id = $('#psr_customer_group_id').val();
+                d.user = $('select#sr_id').val();
+                d.status_paid = $('select#sell_list_filter_payment_status').val();
             },
         },
         columns: [
@@ -1055,8 +1193,8 @@ $(document).ready(function() {
         },
     });
 
-    $(
-        '#psr_customer_group_id, #psr_filter_category_id, #psr_filter_brand_id, #product_sell_report_form #variation_id, #product_sell_report_form #location_id, #product_sell_report_form #customer_id'
+    $(//laestrada se agrega variables del filtro para recargar tabla
+        '#psr_customer_group_id, #psr_filter_category_id, #psr_filter_brand_id, #product_sell_report_form #variation_id, #product_sell_report_form #location_id, #product_sell_report_form #customer_id,#sell_list_filter_payment_status,#sr_id2'
     ).change(function() {
         product_sell_report.ajax.reload();
         product_sell_grouped_report.ajax.reload();
@@ -1260,6 +1398,7 @@ $(document).ready(function() {
                 d.location_id = $('select#location_id').val();
                 d.payment_types = $('select#payment_types').val();
                 d.customer_group_id = $('select#customer_group_filter').val();
+                d.commission_agentp = $('select#sr_idp').val();
                 var start = '';
                 var end = '';
                 if ($('input#spr_date_filter').val()) {
@@ -1349,7 +1488,7 @@ $(document).ready(function() {
         });
     }
 
-    $('#sell_payment_report_form #location_id, #sell_payment_report_form #customer_id, #sell_payment_report_form #payment_types, #sell_payment_report_form #customer_group_filter').change(
+    $('#sell_payment_report_form #location_id, #sell_payment_report_form #customer_id, #sell_payment_report_form #payment_types, #sell_payment_report_form #customer_group_filter, #sell_payment_report_form #sr_idp' ).change(
         function() {
             sell_payment_report.ajax.reload();
         }
@@ -1618,10 +1757,16 @@ function updateSalesRepresentativeReport() {
     sr_sales_report.ajax.reload();
     sr_sales_commission_report.ajax.reload();
 
+   
+
+    
+
     if ($('#sr_payments_with_commission_table').length > 0) {
         sr_payments_with_commission_report.ajax.reload();
     }
 }
+
+
 
 function salesRepresentativeTotalExpense() {
     var start = $('input#sr_date_filter')

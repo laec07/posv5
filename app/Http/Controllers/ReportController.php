@@ -1167,6 +1167,7 @@ class ReportController extends Controller
         }
 
         $business_id = $request->session()->get('user.business_id');
+        $commission_agent = $request->get('commission_agent');
 
         $users = User::allUsersDropdown($business_id, false);
         $business_locations = BusinessLocation::forDropdown($business_id, true);
@@ -1174,10 +1175,114 @@ class ReportController extends Controller
         $business_details = $this->businessUtil->getDetails($business_id);
         $pos_settings = empty($business_details->pos_settings) ? $this->businessUtil->defaultPosSettings() : json_decode($business_details->pos_settings, true);
 
+
+    
+
         return view('report.sales_representative')
                 ->with(compact('users', 'business_locations', 'pos_settings'));
     }
+    /**
+     * Shows sales representative report
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function getCxcRepresentativeTotal(Request $request)
+    {
+        if ($request->ajax()) {
+            $commission_agent = $request->get('commission_agent');
 
+            // Obtener los datos de transacciones
+            $query  = Transaction::select(
+                'c.name',
+                'transactions.id as transaction_id',
+                'transactions.commission_agent',
+                'transactions.type',
+                'transactions.status',
+                'transactions.final_total',
+                'transactions.payment_status',
+                'transactions.transaction_date as date',
+                'transactions.transaction_date as due_date',
+                'transactions.ref_no',
+                DB::raw('transactions.final_total - COALESCE(SUM(transaction_payments.amount), 0) as total_due')
+            )
+                ->leftJoin('transaction_payments', 'transactions.id', '=', 'transaction_payments.transaction_id')
+                ->join('contacts as c', 'c.id', '=', 'transactions.contact_id')
+                ->where('transactions.business_id', 8)
+                ->where('transactions.type', 'sell')
+                ->where('transactions.status', 'final')
+                ->whereIn('transactions.payment_status', ['due', 'partial'])
+                ->groupBy('transactions.id', 'transactions.commission_agent', 'transactions.type', 'transactions.status', 'transactions.final_total');
+                
+                
+                if (! empty($commission_agent)) {
+                    $query->where('transactions.commission_agent', $commission_agent);
+                   
+                }    
+                $cxc_transactions = $query->get();
+
+            // Inicializar arreglo para almacenar los totales por cliente y rango de días
+            $grouped_transactions = [];
+            // Obtener la fecha actual
+            $today = now();
+            // Iterar sobre las transacciones para calcular los totales por cliente y rango de días
+            foreach ($cxc_transactions as $transaction) {
+                $days_diff = $today->diffInDays($transaction->date);
+                // Agrupar por cliente
+                $client_name = $transaction->name;
+                // Sumar la deuda al total correspondiente en el arreglo
+                $grouped_transactions[$client_name]['saldo_actual'] = ($grouped_transactions[$client_name]['saldo_actual'] ?? 0) + $transaction->total_due;
+                // Determinar el rango de días de antigüedad
+                if ($days_diff >= 0 && $days_diff <= 30) {
+                    $range = '0 - 30 días';
+                } elseif ($days_diff > 30 && $days_diff <= 60) {
+                    $range = '31 - 60 días';
+                } elseif ($days_diff > 60 && $days_diff <= 90) {
+                    $range = '61 - 90 días';
+                } elseif ($days_diff > 90 && $days_diff <= 120) {
+                    $range = '91 - 120 días';
+                } else {
+                    $range = 'Más de 120 días';
+                }
+                // Sumar la deuda al total correspondiente en el arreglo
+                $grouped_transactions[$client_name][$range] = ($grouped_transactions[$client_name][$range] ?? 0) + $transaction->total_due;
+            }
+
+            // Formatear los datos según el formato esperado por DataTables
+            $formatted_data = [];
+            foreach ($grouped_transactions as $client_name => $ranges) {
+                $row = [
+                    'client_name' => $client_name,
+                ];
+
+            // Agregar los campos correspondientes a cada rango de días, mostrando 0 si no hay datos y aplicando formato de moneda y span para ser leido por datatable
+            $row = [
+                'client_name' => $client_name,
+                'saldo_actual' => '<span class="saldo-actual" data-orig-value='.($ranges['saldo_actual'] ?? 0).'>' . ($this->transactionUtil->num_f($ranges['saldo_actual'] ?? 0, true)) . '</span>',
+                '0_30' => '<span class="0-30" data-orig-value='.($ranges['0 - 30 días'] ?? 0).'>' . ($this->transactionUtil->num_f($ranges['0 - 30 días'] ?? 0,true)) . '</span>',
+                '31_60' => '<span class="31-60" data-orig-value='.($ranges['31 - 60 días'] ?? 0).'>' . ($this->transactionUtil->num_f($ranges['31 - 60 días'] ?? 0,true)) . '</span>',
+                '61_60' => '<span class="61-90" data-orig-value='.($ranges['61 - 90 días'] ?? 0).'>' . ($this->transactionUtil->num_f($ranges['61 - 90 días'] ?? 0,true)) . '</span>',
+                '91_120' => '<span class="91-120" data-orig-value='.($ranges['91 - 120 días'] ?? 0).'>' . ($this->transactionUtil->num_f($ranges['91 - 120 días'] ?? 0,true)) . '</span>',
+                '120_mas' => '<span class="120-mas" data-orig-value='.($ranges['Más de 120 días'] ?? 0).'>' . ($this->transactionUtil->num_f($ranges['Más de 120 días'] ?? 0,true)) . '</span>',
+            ];
+
+                $formatted_data[] = $row;
+            }
+
+            // Crear la respuesta con el formato requerido por DataTables
+            $response = [
+                'draw' => 1, // Este valor debe coincidir con el número de la solicitud de DataTables
+                'recordsTotal' => count($formatted_data), // El número total de registros (antes de aplicar cualquier filtro)
+                'recordsFiltered' => count($formatted_data), // El número total de registros después de aplicar los filtros
+                'data' => $formatted_data, // Los datos a mostrar en la tabla
+            ];
+
+            // Devolver la respuesta en formato JSON
+            return response()->json($response);
+        }
+
+    }
+
+    /********************************************************* */
     /**
      * Shows sales representative total expense
      *
@@ -1291,7 +1396,6 @@ class ReportController extends Controller
 
             //Get Commision
             $total_commission = $commission_percentage * $sell_details['total_sales_with_commission'] / 100;
-
             return ['total_sales_with_commission' => $sell_details['total_sales_with_commission'],
                 'total_commission' => $total_commission,
                 'commission_percentage' => $commission_percentage,
@@ -1822,6 +1926,7 @@ class ReportController extends Controller
                     't.payment_status',//LAESTRADA reporte venta
                     'users.first_name as name_agent',
                     'users.last_name as lastname_agent',
+                    'users.id',
                     't.transaction_date as transaction_date',
                     'transaction_sell_lines.unit_price_before_discount as unit_price',
                     'transaction_sell_lines.unit_price_inc_tax as unit_sale_price',
@@ -1832,7 +1937,7 @@ class ReportController extends Controller
                     'tax_rates.name as tax',
                     'u.short_name as unit',
                     'v.dpp_inc_tax as unit_purchase_price',
-                    DB::raw('(transaction_sell_lines.unit_price_before_discount - v.dpp_inc_tax) as diferencia'),
+                    DB::raw('((transaction_sell_lines.unit_price_before_discount - v.dpp_inc_tax)*(transaction_sell_lines.quantity - transaction_sell_lines.quantity_returned)) as diferencia'), //laestrada
                     'transaction_sell_lines.parent_sell_line_id',
                     DB::raw('((transaction_sell_lines.quantity - transaction_sell_lines.quantity_returned) * transaction_sell_lines.unit_price_inc_tax) as subtotal'),
                     DB::raw('(SELECT SUM(IF(TP.is_return = 1,-1*TP.amount,TP.amount)) FROM transaction_payments AS TP WHERE
@@ -1879,6 +1984,21 @@ class ReportController extends Controller
             $brand_id = $request->get('brand_id', null);
             if (! empty($brand_id)) {
                 $query->where('p.brand_id', $brand_id);
+            }
+
+            $status_paid = $request->get('status_paid', null); // filtro estado de pago, busca por paid and partial si se selecciona partial LAESTRADA
+            if (! empty($status_paid)) {
+                if ($status_paid == 'due') {
+                    $query->whereIn('t.payment_status', ['partial','due']);
+                }else{
+                    $query->where('t.payment_status', $status_paid);
+                }
+                
+            }
+
+            $user_id = $request->get('user', null);
+            if (! empty($user_id)) {
+                $query->where('users.id', $user_id);
             }
 
             return Datatables::of($query)
@@ -1928,18 +2048,23 @@ class ReportController extends Controller
                     $this->transactionUtil->num_f($row->unit_price, true).'</span>';
                 })
                 //LAESTRADA reporte venta
-                ->editColumn(
-                    'total_paid',
-                    '<span class="total-paid" data-orig-value="{{$total_paid}}">@format_currency($total_paid)</span>'
-                )
+                ->editColumn('total_paid', function ($row) {
+                    return '<span class="total_paid" data-orig-value="'.$row->total_paid.'">'.
+                    $this->transactionUtil->num_f($row->total_paid, true).'</span>';
+                })
+
                 //LAESTRADA reporte venta
                 ->editColumn('unit_purchase_price', function ($row) {
-                    return $this->transactionUtil->num_f($row->unit_purchase_price, true);
+                    return '<span class="unit_purchase_price" data-orig-value="'.$row->unit_purchase_price.'">'.
+                    $this->transactionUtil->num_f($row->unit_purchase_price, true).'</span>';
                 })
+
                 //LAESTRADA reporte venta
                 ->editColumn('diferencia', function ($row) {
-                    return $this->transactionUtil->num_f($row->diferencia, true);
+                    return '<span class="diferencia" data-orig-value="'.$row->diferencia.'">'.
+                    $this->transactionUtil->num_f($row->diferencia, true).'</span>';
                 })
+
                 ->editColumn(
                     'payment_status',
                     function ($row) {
@@ -1963,11 +2088,11 @@ class ReportController extends Controller
                 ->addColumn('total_remaining', function ($row) {
                     $total_remaining = $row->subtotal - $row->total_paid;
                     if($row->payment_status!='paid'){
-                        $total_remaining_html = '<span class="payment_due" data-orig-value="'.$total_remaining.'">'.$this->transactionUtil->num_f($total_remaining, true).'</span>';
+                        $total_remaining_html = '<span class="total_remaining" data-orig-value="'.$total_remaining.'">'.$this->transactionUtil->num_f($total_remaining, true).'</span>';
 
                         
                     }else{
-                        $total_remaining_html=0;
+                        $total_remaining_html='<span class="total_remaining" data-orig-value="0"></span>';;
                     }
                     return $total_remaining_html;
 
@@ -1996,10 +2121,11 @@ class ReportController extends Controller
         $categories = Category::forDropdown($business_id, 'product');
         $brands = Brands::forDropdown($business_id);
         $customer_group = CustomerGroup::forDropdown($business_id, false, true);
+        $users = User::allUsersDropdown($business_id, false);
 
         return view('report.product_sell_report')
             ->with(compact('business_locations', 'customers', 'categories', 'brands',
-                'customer_group', 'product_custom_field1', 'product_custom_field2'));
+                'customer_group', 'product_custom_field1', 'product_custom_field2','users'));
     }
 
     /**
@@ -2158,7 +2284,7 @@ class ReportController extends Controller
         }
 
         $business_id = $request->session()->get('user.business_id');
-
+        
         //Return the details in ajax call
         if ($request->ajax()) {
             $query = Product::where('products.business_id', $business_id)
@@ -2237,7 +2363,8 @@ class ReportController extends Controller
             )
             ->whereNotNull('pl.lot_number')
             ->groupBy('v.id')
-            ->groupBy('pl.lot_number');
+            ->groupBy('pl.lot_number')
+            ->havingRaw('stock > 0'); //LAESTRADA   Muestra solo lotes con stock disponible
 
             return Datatables::of($products)
                 ->editColumn('stock', function ($row) {
@@ -2251,30 +2378,6 @@ class ReportController extends Controller
                     } else {
                         return $row->product;
                     }
-                })
-                ->editColumn('t1_price', function ($row) {//LAESTRADA
-                    $t1_price = 0;
-                    if ($row->t1_price) {
-                        $t1_price =  (float)$row->t1_price;
-                    }
-
-                    return '<span class="display_currency t1_price" data-currency_symbol=true data-unit="Q"  data-orig-value="' . $t1_price . '"  >' . $t1_price . '</span> ' ;
-                })
-                ->editColumn('t2_price', function ($row) {//LAESTRADA
-                    $t2_price = 0;
-                    if ($row->t2_price) {
-                        $t2_price =  (float)$row->t2_price;
-                    }
-
-                    return '<span class="display_currency t2_price" data-currency_symbol=true data-unit="Q"  data-orig-value="' . $t2_price . '"  >' . $t2_price . '</span> ' ;
-                })
-                ->editColumn('t3_price', function ($row) {//LAESTRADA
-                    $t3_price = 0;
-                    if ($row->t3_price) {
-                        $t3_price =  (float)$row->t3_price;
-                    }
-
-                    return '<span class="display_currency t3_price" data-currency_symbol=true data-unit="Q"  data-orig-value="' . $t3_price . '"  >' . $t3_price . '</span> ' ;
                 })
                 ->editColumn('total_sold', function ($row) {
                     if ($row->total_sold) {
@@ -2310,6 +2413,38 @@ class ReportController extends Controller
                 ->make(true);
         }
 
+//LAESTRADA Se busca el la cantidad disponible del producto agrupandolo por lote.
+        $lots_agroup = Product::where('products.business_id', $business_id)
+        ->leftjoin('units', 'products.unit_id', '=', 'units.id')
+        ->join('variations as v', 'products.id', '=', 'v.product_id')
+        ->join('purchase_lines as pl', 'v.id', '=', 'pl.variation_id')
+        ->leftjoin(
+            'transaction_sell_lines_purchase_lines as tspl',
+            'pl.id',
+            '=',
+            'tspl.purchase_line_id'
+        )
+        ->join('transactions as t', 'pl.transaction_id', '=', 't.id')
+        ->select(
+            'pl.lot_number',
+            'products.name as product_name',
+            'units.short_name as unit',
+            DB::raw("( COALESCE((SELECT SUM(quantity - quantity_returned) 
+            FROM purchase_lines AS pls 
+            WHERE pls.variation_id = v.id 
+                  AND pls.lot_number = pl.lot_number), 0) - 
+            SUM(COALESCE((tspl.quantity - tspl.qty_returned), 0))) AS quantity")
+        )
+        ->whereNotNull('pl.lot_number')
+        ->groupBy('pl.lot_number', 'products.name')
+        ->havingRaw('SUM(pl.quantity) > 0')
+        ->orderBy('pl.lot_number')
+        ->havingRaw('quantity > 0') //LAESTRADA   Muestra solo lotes con stock disponible
+        ->get();
+
+    // Agrupa los productos por número de lote
+    $groupedProducts = $lots_agroup->groupBy('lot_number');
+
         $categories = Category::forDropdown($business_id, 'product');
         $brands = Brands::forDropdown($business_id);
         $units = Unit::where('business_id', $business_id)
@@ -2317,7 +2452,7 @@ class ReportController extends Controller
         $business_locations = BusinessLocation::forDropdown($business_id, true);
 
         return view('report.lot_report')
-            ->with(compact('categories', 'brands', 'units', 'business_locations'));
+            ->with(compact('categories', 'brands', 'units', 'business_locations','groupedProducts'));
     }
 
     /**
@@ -2517,7 +2652,16 @@ class ReportController extends Controller
             if ($permitted_locations != 'all') {
                 $query->whereIn('t.location_id', $permitted_locations);
             }
+            // Acá va el filtro por agente LAESTRADA -soli-
+            $user_id = $request->get('commission_agentp', null);
+            if (! empty($user_id)) {
+                $query->where('t.commission_agent', $user_id);
+            }
 
+            if (! empty($request->get('customer_group_id'))) {
+                $query->where('CG.id', $request->get('customer_group_id'));
+            }
+            
             if (! empty($request->get('customer_group_id'))) {
                 $query->where('CG.id', $request->get('customer_group_id'));
             }
@@ -2578,9 +2722,10 @@ class ReportController extends Controller
         $business_locations = BusinessLocation::forDropdown($business_id);
         $customers = Contact::customersDropdown($business_id, false);
         $customer_groups = CustomerGroup::forDropdown($business_id, false, true);
+        $users = User::allUsersDropdown($business_id, false);
 
         return view('report.sell_payment_report')
-            ->with(compact('business_locations', 'customers', 'payment_types', 'customer_groups'));
+            ->with(compact('business_locations', 'customers', 'payment_types', 'customer_groups','users'));
     }
 
     /**
@@ -3176,6 +3321,12 @@ class ReportController extends Controller
                 ->groupBy('sale.contact_id');
         }
 
+        if ($by == 'agent') {
+            $query->join('users as US', 'sale.commission_agent', '=', 'US.id')
+            ->addSelect('US.first_name as fn_agent', 'US.last_name as ls_agent')
+                ->groupBy('sale.commission_agent');
+        }
+
         $datatable = Datatables::of($query);
 
         if (in_array($by, ['invoice'])) {
@@ -3227,6 +3378,11 @@ class ReportController extends Controller
         if ($by == 'customer') {
             $datatable->editColumn('customer', '@if(!empty($supplier_business_name)) {{$supplier_business_name}}, <br> @endif {{$customer}}');
             $raw_columns[] = 'customer';
+        }
+
+        if ($by == 'agent') {
+            $datatable->editColumn('Agente', '@if(!empty($supplier_business_name)) {{$supplier_business_name}}, <br> @endif {{$fn_agent." ".$ls_agent}}');
+            $raw_columns[] = 'fn_agent';
         }
 
         if ($by == 'invoice') {

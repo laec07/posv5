@@ -23,7 +23,7 @@
             </div>
         @endif
     @endcomponent
-    @component('components.widget', ['class' => 'box-primary', 'title' => __( 'lang_v1.all_sales')])
+    @component('components.widget', ['class' => 'box-primary', 'title' => __( 'lang_v1.all_sales') ])
         @can('direct_sell.access')
             @slot('tool')
                 <div class="box-tools">
@@ -34,8 +34,9 @@
         @endcan
         @if(auth()->user()->can('direct_sell.view') ||  auth()->user()->can('view_own_sell_only') ||  auth()->user()->can('view_commission_agent_sell'))
         @php
-            $custom_labels = json_decode(session('business.custom_labels'), true);
+            $custom_labels = json_decode(session('business.custom_labels'), true);  
          @endphp
+         <label id='label_commission_agents'></label>
             <table class="table table-bordered table-striped ajax_view" id="sell_table">
                 <thead>
                     <tr>
@@ -46,6 +47,7 @@
                         <th>@lang('lang_v1.contact_no')</th>
                         <th>@lang('sale.location')</th>
                         <th>@lang('sale.payment_status')</th>
+                        <th>@lang('Fecha vencimiento')</th>
                         <th>@lang('lang_v1.payment_method')</th>
                         <th>@lang('sale.total_amount')</th>
                         <th>@lang('sale.total_paid')</th>
@@ -103,6 +105,10 @@
 
 @section('javascript')
 <script type="text/javascript">
+
+
+
+
 $(document).ready( function(){
     //Date range as a button
     $('#sell_list_filter_date_range').daterangepicker(
@@ -165,6 +171,7 @@ $(document).ready( function(){
             { data: 'mobile', name: 'contacts.mobile'},
             { data: 'business_location', name: 'bl.name'},
             { data: 'payment_status', name: 'payment_status'},
+            { data: 'payment_date', name: 'payment_date',"searchable": false },
             { data: 'payment_methods', orderable: false, "searchable": false},
             { data: 'final_total', name: 'final_total'},
             { data: 'total_paid', name: 'total_paid', "searchable": false},

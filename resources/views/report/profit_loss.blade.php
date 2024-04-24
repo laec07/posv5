@@ -82,6 +82,9 @@
                         <a href="#profit_by_customer" data-toggle="tab" aria-expanded="true"><i class="fa fa-user" aria-hidden="true"></i> @lang('lang_v1.profit_by_customer')</a>
                     </li>
                     <li>
+                        <a href="#profit_by_agent" data-toggle="tab" aria-expanded="true"><i class="fa fa-user" aria-hidden="true"></i> @lang('lang_v1.profit_by_agente')</a>
+                    </li>
+                    <li>
                         <a href="#profit_by_day" data-toggle="tab" aria-expanded="true"><i class="fa fa-calendar" aria-hidden="true"></i> @lang('lang_v1.profit_by_day')</a>
                     </li>
                 </ul>
@@ -113,6 +116,9 @@
 
                     <div class="tab-pane" id="profit_by_customer">
                         @include('report.partials.profit_by_customer')
+                    </div>
+                    <div class="tab-pane" id="profit_by_agent">
+                        @include('report.partials.profit_by_agent')
                     </div>
 
                     <div class="tab-pane" id="profit_by_day">
@@ -367,6 +373,40 @@
                     });
                 } else {
                     profit_by_customers_table.ajax.reload();
+                }
+            } else if (target == '#profit_by_agent') { //LAESTRADA
+                if(typeof profit_by_agents_table == 'undefined') {
+                    profit_by_agents_table = $('#profit_by_agent_table').DataTable({
+                        processing: true,
+                        serverSide: true,
+                        "ajax": {
+                            "url": "/reports/get-profit/agent",
+                            "data": function ( d ) {
+                                d.start_date = $('#profit_loss_date_filter')
+                                    .data('daterangepicker')
+                                    .startDate.format('YYYY-MM-DD');
+                                d.end_date = $('#profit_loss_date_filter')
+                                    .data('daterangepicker')
+                                    .endDate.format('YYYY-MM-DD');
+                                d.location_id = $('#profit_loss_location_filter').val();
+                            }
+                        },
+                        columns: [
+                            { data: 'Agente', name: 'US.first_name'  },
+                            { data: 'gross_profit', "searchable": false},
+                        ],
+                        footerCallback: function ( row, data, start, end, display ) {
+                            var total_profit = 0;
+                            for (var r in data){
+                                total_profit += $(data[r].gross_profit).data('orig-value') ? 
+                                parseFloat($(data[r].gross_profit).data('orig-value')) : 0;
+                            }
+
+                            $('#profit_by_agent_table .footer_total').html(__currency_trans_from_en(total_profit));
+                        },
+                    });
+                } else {
+                    profit_by_agents_table.ajax.reload();
                 }
             } else if (target == '#profit_by_day') {
                 var start_date = $('#profit_loss_date_filter')

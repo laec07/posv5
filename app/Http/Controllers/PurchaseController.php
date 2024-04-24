@@ -398,7 +398,7 @@ class PurchaseController extends Controller
 
             $purchase_lines = [];
             $purchases = $request->input('purchases');
-
+            $transaction->ref_count = $ref_count;//LAEC Para mandar correlativo al inserta lote
             $this->productUtil->createOrUpdatePurchaseLines($transaction, $purchases, $currency_details, $enable_product_editing);
 
             //Add Purchase payments

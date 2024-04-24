@@ -6,7 +6,10 @@ use App\Business;
 use App\Transaction;
 use App\TransactionSellLinesPurchaseLines;
 use App\Utils\Util;
+use App\Utils\ProductUtil;
+use App\PurchaseLine;
 use App\Variation;
+use App\Product;
 use DB;
 use Modules\Manufacturing\Entities\MfgRecipeIngredient;
 
@@ -14,7 +17,7 @@ class ManufacturingUtil extends Util
 {
     /**
      * Retrives ingredients details.
-     *
+     * 
      * @return array
      */
     public function getIngredientDetails($recipe, $business_id, $location_id = null)
@@ -55,6 +58,16 @@ class ManufacturingUtil extends Util
                 $is_sub_unit = true;
             }
 
+            // Inicializar el arreglo de números de lote  INICIO LAESTRADA
+            $lot_numbers = [];
+            // Obtener los lotes para esta variación
+            $lot_number_obj = $this->getLotNumbersFromVariation( $variation->id, $business_id, $location_id, true);
+            // Iterar sobre los números de lote y darles formato
+            foreach ($lot_number_obj as $lot_number) {
+                $lot_number->qty_formated = $this->num_f($lot_number->qty_available);
+                $lot_numbers[] = $lot_number;
+            }
+            // FIN LAESTRADA
             $line_total_quantity = $ingredient_variation->quantity;
             $unit_qty = $line_total_quantity * $multiplier;
 
@@ -86,6 +99,7 @@ class ManufacturingUtil extends Util
                 'total_price' => $total_price,
                 'waste_percent' => $waste_percent,
                 'final_quantity' => $final_quantity,
+                'lot_numbers' => $lot_numbers, // LAESTRADA
                 'mfg_ingredient_group_id' => $ingredient_variation->mfg_ingredient_group_id,
                 'ingredient_group_name' => ! empty($ingredient_variation->ingredient_group->name) ? $ingredient_variation->ingredient_group->name : '',
                 'ig_description' => ! empty($ingredient_variation->ingredient_group->description) ? $ingredient_variation->ingredient_group->description : '',
@@ -93,6 +107,50 @@ class ManufacturingUtil extends Util
         }
 
         return $ingredients;
+    }
+
+    /**
+     * Lotes LAESTRADA.
+     * Se traslada funcion de obtención de lotes a este controlador 
+     * Se modifica el query ya que el anterior mostraba todos los lotes aunque no tengan stock
+     * @return array
+     */
+    public function getLotNumbersFromVariation($variation_id, $business_id, $location_id, $exclude_empty_lot = false)
+    {
+
+        $query = Product::where('products.business_id', $business_id)
+        ->leftjoin('units', 'products.unit_id', '=', 'units.id')
+        ->join('variations as v', 'products.id', '=', 'v.product_id')
+        ->join('purchase_lines as pl', 'v.id', '=', 'pl.variation_id')
+        ->leftjoin(
+            'transaction_sell_lines_purchase_lines as tspl',
+            'pl.id',
+            '=',
+            'tspl.purchase_line_id'
+        )
+        ->join('transactions as t', 'pl.transaction_id', '=', 't.id');
+
+        $purchase_lines = $query->select(
+            'pl.id as purchase_line_id',
+            'pl.lot_number',
+            'pl.exp_date as exp_date',
+            DB::raw("( COALESCE((SELECT SUM(quantity - quantity_returned) 
+            FROM purchase_lines AS pls 
+            WHERE pls.variation_id = v.id 
+                  AND pls.lot_number = pl.lot_number), 0) - 
+            SUM(COALESCE((tspl.quantity - tspl.qty_returned), 0))) AS qty_available")
+        )
+        ->whereNotNull('pl.lot_number')
+        ->where('products.business_id', $business_id)
+        ->where('v.id', $variation_id)
+        ->where('t.location_id', $location_id)
+        ->groupBy('v.id', 'pl.lot_number')
+        ->havingRaw('qty_available > 0')
+        ->get();
+
+        return $purchase_lines;
+
+        
     }
 
     /**

@@ -65,6 +65,12 @@
                         {!! Form::text('date_range', null, ['placeholder' => __('lang_v1.select_a_date_range'), 'class' => 'form-control', 'id' => 'spr_date_filter', 'readonly']); !!}
                     </div>
                 </div>
+                <div class="col-md-3"> <!-- filtro agente comercial  LAESTRADA -->
+                    <div class="form-group">
+                            {!! Form::label('sr_idp',  __('Agente comercial') . ':') !!}
+                            {!! Form::select('sr_idp', $users, null, ['class' => 'form-control select2', 'style' => 'width:100%', 'placeholder' => __('report.all_users')]); !!}
+                        </div>
+                </div>
                 {!! Form::close() !!}
             @endcomponent
         </div>
@@ -109,6 +115,6 @@
 @endsection
 
 @section('javascript')
-    <script src="{{ asset('js/report.js?v=' . $asset_v) }}"></script>
+<script src="{{ asset('js/report.js') }}?v={{ filemtime(public_path('js/report.js')) }}"></script>
     <script src="{{ asset('js/payment.js?v=' . $asset_v) }}"></script>
 @endsection
