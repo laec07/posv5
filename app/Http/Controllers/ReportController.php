@@ -1209,6 +1209,7 @@ class ReportController extends Controller
                 ->join('contacts as c', 'c.id', '=', 'transactions.contact_id')
                 ->where('transactions.business_id', 8)
                 ->where('transactions.type', 'sell')
+                ->where('transactions.status', 'final')
                 ->whereIn('transactions.payment_status', ['due', 'partial'])
                 ->groupBy('transactions.id', 'transactions.commission_agent', 'transactions.type', 'transactions.status', 'transactions.final_total');
                 
@@ -2651,7 +2652,16 @@ class ReportController extends Controller
             if ($permitted_locations != 'all') {
                 $query->whereIn('t.location_id', $permitted_locations);
             }
+            // Acá va el filtro por agente LAESTRADA -soli-
+            $user_id = $request->get('commission_agentp', null);
+            if (! empty($user_id)) {
+                $query->where('t.commission_agent', $user_id);
+            }
 
+            if (! empty($request->get('customer_group_id'))) {
+                $query->where('CG.id', $request->get('customer_group_id'));
+            }
+            
             if (! empty($request->get('customer_group_id'))) {
                 $query->where('CG.id', $request->get('customer_group_id'));
             }
@@ -2712,9 +2722,10 @@ class ReportController extends Controller
         $business_locations = BusinessLocation::forDropdown($business_id);
         $customers = Contact::customersDropdown($business_id, false);
         $customer_groups = CustomerGroup::forDropdown($business_id, false, true);
+        $users = User::allUsersDropdown($business_id, false);
 
         return view('report.sell_payment_report')
-            ->with(compact('business_locations', 'customers', 'payment_types', 'customer_groups'));
+            ->with(compact('business_locations', 'customers', 'payment_types', 'customer_groups','users'));
     }
 
     /**

@@ -1041,7 +1041,6 @@ $(document).ready(function() {
                     d.category_id = $('select#psr_filter_category_id').val();
                     d.brand_id = $('select#psr_filter_brand_id').val();
                     d.customer_group_id = $('#psr_customer_group_id').val();
-                    console.log(d);
                     d.user = $('select#sr_id').val();
                     d.status_paid = $('select#sell_list_filter_payment_status').val();
                 },
@@ -1399,6 +1398,7 @@ $(document).ready(function() {
                 d.location_id = $('select#location_id').val();
                 d.payment_types = $('select#payment_types').val();
                 d.customer_group_id = $('select#customer_group_filter').val();
+                d.commission_agentp = $('select#sr_idp').val();
                 var start = '';
                 var end = '';
                 if ($('input#spr_date_filter').val()) {
@@ -1488,7 +1488,7 @@ $(document).ready(function() {
         });
     }
 
-    $('#sell_payment_report_form #location_id, #sell_payment_report_form #customer_id, #sell_payment_report_form #payment_types, #sell_payment_report_form #customer_group_filter').change(
+    $('#sell_payment_report_form #location_id, #sell_payment_report_form #customer_id, #sell_payment_report_form #payment_types, #sell_payment_report_form #customer_group_filter, #sell_payment_report_form #sr_idp' ).change(
         function() {
             sell_payment_report.ajax.reload();
         }
