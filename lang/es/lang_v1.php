@@ -1357,4 +1357,5 @@ return [
     'format_2'=> 'Formato 2',
     'format_3'=> 'Formato 3',
     'ledger_format' => 'Formato',
+    'overdue' => 'Vencimiento',
 ];

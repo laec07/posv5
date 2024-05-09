@@ -82,7 +82,7 @@
 				@endphp
 				<tr @if(!empty($for_pdf) && $loop->iteration % 2 == 0) class="odd" @endif style="border:hidden;">
 					<td class="row-border">{{@format_datetime($data['date'])}}</td>
-					<td>@if($loop->index == 0) {{$data['type']}} @endif {{$data['ref_no']}} @if(!empty($data['due_date']) && $data['payment_status'] != 'paid') <br>@lang('lang_v1.due') {{@format_date($data['due_date'])}} @endif</td>
+					<td>@if($loop->index == 0) {{$data['type']}} @endif {{$data['ref_no']}} @if(!empty($data['due_date']) && $data['payment_status'] != 'paid') <br>@lang('lang_v1.overdue') {{@format_date($data['due_date'])}} @endif</td>
 					<td>@format_currency($data['final_total'])</td>
 					<td>@format_currency($data['total_due'])</td>
 				</tr>
