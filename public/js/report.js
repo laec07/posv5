@@ -242,6 +242,7 @@ $(document).ready(function() {
     $('#only_mfg_products').on('ifChanged', function(event){
         stock_report_table.ajax.reload();
         lot_report.ajax.reload();
+      //  grouped_lot_report.ajax.reload();
         stock_expiry_report_table.ajax.reload();
         items_report_table.ajax.reload();
     });
@@ -1281,6 +1282,44 @@ $(document).ready(function() {
         });
     }
 
+    //Product lot Report
+   /* grouped_lot_report = $('table#grouped_lot_report').DataTable({
+        processing: true,
+        serverSide: true,
+        // aaSorting: [[3, 'desc']],
+
+        ajax: {
+            url: '/reports/lot-reportgrouped',
+            data: function(d) {
+                d.location_id = $('#location_id').val();
+                d.category_id = $('#category_id').val();
+                d.sub_category_id = $('#sub_category_id').val();
+                d.brand_id = $('#brand').val();
+                d.unit_id = $('#unit').val();
+                d.only_mfg_products = $('#only_mfg_products').length && $('#only_mfg_products').is(':checked') ? 1 : 0;
+            },
+        },
+        columns: [
+            { data: 'lot_number', name:'lot_number'}, // Columna para el número de lote
+            { data: 'product_name', name:'product_name' }, // Columna para el nombre del producto
+            { data: 'quantity', name:'quantity' }, // Columna para la cantidad
+            { data: 'unit', name:'unit' }, // Columna para la unidad
+        ],
+
+        rowGroup: {
+            dataSrc: 'lot_number' // Especifica que los datos deben agruparse por el número de lote
+        },
+        fnDrawCallback: function(oSettings) {
+            
+        },
+    });
+
+    if ($('table#grouped_lot_report').length == 1) {
+        $('#location_id, #category_id, #sub_category_id, #unit, #brand').change(function() {
+            grouped_lot_report.ajax.reload();
+        });
+    }
+*/
     //Purchase Payment Report
     purchase_payment_report = $('table#purchase_payment_report_table').DataTable({
         processing: true,

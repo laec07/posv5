@@ -119,13 +119,18 @@
                                 <tbody>
                                     @foreach($groupedProducts as $lotNumber => $products)
                                         <tr>
-                                            <td colspan="2"><strong>@lang('lang_v1.lot_number'): {{ $lotNumber }}</strong></td>
+                                            <td colspan="3"><strong>@lang('lang_v1.lot_number'): {{ $lotNumber }}</strong></td>
                                         </tr>
                                         @foreach($products as $product)
                                             <tr>
 
                                                 <td>{{ $product->product_name }}</td>
                                                 <td>{{ number_format($product->quantity, 2).$product->unit }}</td>
+                                                <td>
+                                                    @if($product->type == 'production_purchase')                                                
+                                                 <button data-href="{{ route('production.getlot', ['id' => $product->lot_number]) }}" class="btn btn-info btn-xs btn-modal" data-container=".view_modal"><i class="fa fa-eye"></i></button>
+                                                   @endif
+                                                </td>
                                             </tr>
                                         @endforeach
                                     @endforeach
@@ -141,6 +146,10 @@
 <!-- /.content -->
 
 @endsection
+<div class="modal fade" id="recipe_modal" tabindex="-1" role="dialog" 
+    aria-labelledby="gridSystemModalLabel">
+</div>
+
 
 @section('javascript')
     <script src="{{ asset('js/report.js?v=' . $asset_v) }}"></script>

@@ -10,6 +10,7 @@ use App\Utils\ModuleUtil;
 use App\Utils\ProductUtil;
 use App\Utils\TransactionUtil;
 use App\Variation;
+use App\PurchaseLine;
 use DB;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -111,7 +112,7 @@ class ProductionController extends Controller
             }
 
             return Datatables::of($productions)
-                ->addColumn('action', function ($row) {
+                ->addColumn('action', function ($row) {//Buton show details laestrada
                     $html = '<button data-href="'.action([\Modules\Manufacturing\Http\Controllers\ProductionController::class, 'show'], $row->id).'" class="btn btn-info btn-xs btn-modal" data-container=".view_modal"><i class="fa fa-eye"></i> '.__('messages.view').'</button>';
                     if ($row->mfg_is_final == 0) {
                         $html .= ' <a href="'.action([\Modules\Manufacturing\Http\Controllers\ProductionController::class, 'edit'], $row->id).'" class="btn btn-primary btn-xs"><i class="fa fa-edit"></i> '.__('messages.edit').'</a>';
@@ -499,6 +500,35 @@ class ProductionController extends Controller
 
         return view('manufacturing::production.show')->with(compact('production_purchase', 'production_sell', 'purchase_line', 'ingredients', 'unit_name', 'quantity', 'quantity_wasted', 'actual_quantity', 'total_production_cost', 'ingredient_groups'));
     }
+
+    /**
+     * Show the specified by lots resource.
+     * LAESTRADA
+     * @return Response
+     */
+    public function showstockreport($lot_num)
+    {
+        $business_id = request()->session()->get('user.business_id');
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.access_production')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $results = PurchaseLine::where('purchase_lines.lot_number', $lot_num)
+        ->join('transactions as t', 't.mfg_parent_production_purchase_id', '=', 'purchase_lines.transaction_id')
+        ->join('transaction_sell_lines as tsl', 't.id', '=', 'tsl.transaction_id')
+        ->join('products as p', 'p.id', '=', 'tsl.product_id')
+        ->join('purchase_lines as pl2', 'pl2.id', '=', 'tsl.lot_no_line_id')
+        ->join('units as u', 'u.id', '=', 'p.unit_id')
+        ->where('t.business_id', $business_id)
+        ->select(
+            'p.name as product_name',
+            'tsl.quantity',
+            'pl2.lot_number as lot_number',
+            'u.actual_name as unit_name'
+        )
+        ->get();
+            return view('manufacturing::production.showmodal')->with(compact('results'));
+        }
 
     /**
      * Show the form for editing the specified resource.

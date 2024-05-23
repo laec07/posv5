@@ -2364,7 +2364,7 @@ class ReportController extends Controller
             ->whereNotNull('pl.lot_number')
             ->groupBy('v.id')
             ->groupBy('pl.lot_number')
-            ->havingRaw('stock > 0'); //LAESTRADA   Muestra solo lotes con stock disponible
+            ->havingRaw('stock > 0'); //LAESTRADA   Muestra solo lotesw con stock disponible
 
             return Datatables::of($products)
                 ->editColumn('stock', function ($row) {
@@ -2411,39 +2411,35 @@ class ReportController extends Controller
                 ->removeColumn('variation_name')
                 ->rawColumns(['exp_date', 'stock', 'total_sold', 'total_adjusted'])
                 ->make(true);
+
         }
-
-//LAESTRADA Se busca el la cantidad disponible del producto agrupandolo por lote.
         $lots_agroup = Product::where('products.business_id', $business_id)
-        ->leftjoin('units', 'products.unit_id', '=', 'units.id')
-        ->join('variations as v', 'products.id', '=', 'v.product_id')
-        ->join('purchase_lines as pl', 'v.id', '=', 'pl.variation_id')
-        ->leftjoin(
-            'transaction_sell_lines_purchase_lines as tspl',
-            'pl.id',
-            '=',
-            'tspl.purchase_line_id'
-        )
-        ->join('transactions as t', 'pl.transaction_id', '=', 't.id')
-        ->select(
-            'pl.lot_number',
-            'products.name as product_name',
-            'units.short_name as unit',
-            DB::raw("( COALESCE((SELECT SUM(quantity - quantity_returned) 
-            FROM purchase_lines AS pls 
-            WHERE pls.variation_id = v.id 
-                  AND pls.lot_number = pl.lot_number), 0) - 
-            SUM(COALESCE((tspl.quantity - tspl.qty_returned), 0))) AS quantity")
-        )
-        ->whereNotNull('pl.lot_number')
-        ->groupBy('pl.lot_number', 'products.name')
-        ->havingRaw('SUM(pl.quantity) > 0')
-        ->orderBy('pl.lot_number')
-        ->havingRaw('quantity > 0') //LAESTRADA   Muestra solo lotes con stock disponible
-        ->get();
+            ->leftjoin('units', 'products.unit_id', '=', 'units.id')
+            ->join('variations as v', 'products.id', '=', 'v.product_id')
+            ->join('purchase_lines as pl', 'v.id', '=', 'pl.variation_id')
+            ->leftjoin('transaction_sell_lines_purchase_lines as tspl', 'pl.id', '=', 'tspl.purchase_line_id')
+            ->join('transactions as t', 'pl.transaction_id', '=', 't.id')
+            ->select(
+                't.id as id_trans',
+                'pl.lot_number',
+                'products.name as product_name',
+                'units.short_name as unit',
+                't.type as type',
+                DB::raw("( COALESCE((SELECT SUM(quantity - quantity_returned) 
+                    FROM purchase_lines AS pls 
+                    WHERE pls.variation_id = v.id 
+                        AND pls.lot_number = pl.lot_number), 0) - 
+                    SUM(COALESCE((tspl.quantity - tspl.qty_returned), 0))) AS quantity")
+            )
+            ->whereNotNull('pl.lot_number')
+            ->groupBy('pl.lot_number', 'products.name')
+            ->havingRaw('SUM(pl.quantity) > 0')
+            ->orderBy('pl.lot_number')
+            ->havingRaw('quantity > 0') // Muestra solo lotes con stock disponible
+            ->get();
 
-    // Agrupa los productos por número de lote
-    $groupedProducts = $lots_agroup->groupBy('lot_number');
+        // Agrupa los productos por número de lote
+        $groupedProducts = $lots_agroup->groupBy('lot_number');
 
         $categories = Category::forDropdown($business_id, 'product');
         $brands = Brands::forDropdown($business_id);
@@ -2454,6 +2450,104 @@ class ReportController extends Controller
         return view('report.lot_report')
             ->with(compact('categories', 'brands', 'units', 'business_locations','groupedProducts'));
     }
+
+    /**
+     * Shows product Grouped lot report
+     *
+     * @return \Illuminate\Http\Response
+     */
+
+
+public function groupedProducts(Request $request)
+{
+    $business_id = $request->session()->get('user.business_id');
+
+    // Verificar si la solicitud es una llamada AJAX
+    if ($request->ajax()) {
+        // Consulta para obtener los productos agrupados por lote
+        $query = Product::where('products.business_id', $business_id)
+            ->leftjoin('units', 'products.unit_id', '=', 'units.id')
+            ->join('variations as v', 'products.id', '=', 'v.product_id')
+            ->join('purchase_lines as pl', 'v.id', '=', 'pl.variation_id')
+            ->leftjoin('transaction_sell_lines_purchase_lines as tspl', 'pl.id', '=', 'tspl.purchase_line_id')
+            ->join('transactions as t', 'pl.transaction_id', '=', 't.id')
+            ->select(
+                'pl.lot_number',
+                'products.name as product_name',
+                'units.short_name as unit',
+                DB::raw("( COALESCE((SELECT SUM(quantity - quantity_returned) 
+                    FROM purchase_lines AS pls 
+                    WHERE pls.variation_id = v.id 
+                        AND pls.lot_number = pl.lot_number), 0) - 
+                    SUM(COALESCE((tspl.quantity - tspl.qty_returned), 0))) AS quantity")
+            )
+            ->whereNotNull('pl.lot_number')
+            ->groupBy('pl.lot_number', 'products.name')
+            ->havingRaw('SUM(pl.quantity) > 0')
+            ->orderBy('pl.lot_number')
+            ->havingRaw('quantity > 0'); // Muestra solo lotes con stock disponible
+
+
+            $permitted_locations = auth()->user()->permitted_locations();
+            $location_filter = 'WHERE ';
+
+            if ($permitted_locations != 'all') {
+                $query->whereIn('t.location_id', $permitted_locations);
+
+                $locations_imploded = implode(', ', $permitted_locations);
+                $location_filter = " LEFT JOIN transactions as t2 on pls.transaction_id=t2.id WHERE t2.location_id IN ($locations_imploded) AND ";
+            }
+
+            if (! empty($request->input('location_id'))) {
+                $location_id = $request->input('location_id');
+                $query->where('t.location_id', $location_id)
+                    //If filter by location then hide products not available in that location
+                    ->ForLocation($location_id);
+
+                $location_filter = "LEFT JOIN transactions as t2 on pls.transaction_id=t2.id WHERE t2.location_id=$location_id AND ";
+            }
+
+            if (! empty($request->input('category_id'))) {
+                $query->where('products.category_id', $request->input('category_id'));
+            }
+
+            if (! empty($request->input('sub_category_id'))) {
+                $query->where('products.sub_category_id', $request->input('sub_category_id'));
+            }
+
+            if (! empty($request->input('brand_id'))) {
+                $query->where('products.brand_id', $request->input('brand_id'));
+            }
+
+            if (! empty($request->input('unit_id'))) {
+                $query->where('products.unit_id', $request->input('unit_id'));
+            }
+
+            $only_mfg_products = request()->get('only_mfg_products', 0);
+            if (! empty($only_mfg_products)) {
+                $query->where('t.type', 'production_purchase');
+            } 
+
+            $lots_agroup = $query->get();
+        // Formatear los datos para DataTables
+        $formattedData = [];
+        foreach ($lots_agroup as $product) {
+            $formattedData[] = [
+                'lot_number' => $product->lot_number,
+                'product_name' => $product->product_name,
+                'quantity' => $product->quantity,
+                'unit' => $product->unit,
+            ];
+        }
+
+        // Devolver los datos en el formato esperado por DataTables
+        return DataTables::of($formattedData)
+            ->addColumn('DT_RowId', function ($row) {
+                return 'row_' . $row['lot_number'];
+            })
+            ->make(true);
+    }
+}
 
     /**
      * Shows purchase payment report
