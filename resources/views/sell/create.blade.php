@@ -241,6 +241,25 @@
 						<p class="help-block">@lang('Envio interno')</p>
 					</div>
 				</div><!-- laestrada fin -->
+				<div class="col-sm-3"> <!-- laestrada campo No envio Sierra Madre -->
+					<div class="form-group">
+					
+						<div class="switch-button">
+							@if($felconfigurations->fel_active=="S")
+							{!! Form::label('fel_active',  __('Factura Fel') . ':') !!}
+								@if($felconfigurations->fel_predeterm=="S")
+									<input type="checkbox" name="ffel" id="ffel" value="1" class="switch-button__checkbox"  checked><!-- Habilitar y deshabilitar facturacion Fel-->
+									<label for="ffel" class="switch-button__label"></label>
+								@else
+									<input type="checkbox" name="ffel" id="ffel" value="1" class="switch-button__checkbox" > <!-- Habilitar y deshabilitar facturacion Fel-->
+									<label for="ffel" class="switch-button__label"></label>
+								@endif
+							@endif
+							
+						</div>
+						
+					</div>
+				</div><!-- laestrada fin -->
 					@can('edit_invoice_number')
 					<div class="col-sm-3">
 						<div class="form-group">

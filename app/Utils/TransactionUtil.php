@@ -26,7 +26,9 @@ use App\Variation;
 use App\VariationLocationDetails;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-
+use App\FelConfiguration; // laestrada tabla fel configuration
+use App\FelFacturas; // laestrada tabla fel
+use GuzzleHttp\Client; // laestrada para consumo de metodos post
 class TransactionUtil extends Util
 {
     /**
@@ -947,7 +949,270 @@ class TransactionUtil extends Util
 
         return $payment_lines;
     }
+/**
+     * Genera XML para INFILE LAEC 31032023.
+     *
+     * @param int $transaction_id
+     * @param int $location_id
+     * @param object $invoice_layout
+     * @param array $business_details
+     * @param array $receipt_details
+     * @param string $receipt_printer_type
+     *
+     * @return array
+     */
+    public function GenerateXMLInfile($transaction_id, $location_id, $invoice_layout, $business_details, $location_details)
+    {
 
+        
+            // Fecha Actual
+            $now = \Carbon::now();
+            $Fecha = \Carbon::now()->format('Y-m-d');
+            $Hora = \Carbon::now()->format('H:i:s');
+            $FechaActualFormat = $Fecha.'T'.$Hora.'-06:00';
+            
+            //Transaction
+            $transaction = Transaction::find($transaction_id);
+            //Customer show_customer
+            $customer = Contact::find($transaction->contact_id);
+            //Fel configurations
+            $felconfigurations = FelConfiguration::where('business_id', $business_details->id)
+            ->where('location_id', $location_id)
+            ->first();
+            //validar direccion vacía
+            if(empty($customer->city)){
+                $customer->city='GUATEMALA';
+            }
+            if(empty($customer->state)){
+                $customer->state='GUATEMALA';
+            }
+            if(empty($customer->landmark)){
+                $customer->landmark='CIUDAD';
+            }
+        try {
+
+
+            $sell_line_relations = ['modifiers'];
+            $il = $invoice_layout;
+            $lines = $transaction->sell_lines()->whereNull('parent_sell_line_id')->with($sell_line_relations)->get();
+            
+            $details = $this->_receiptDetailsSellLines($lines, $il,$business_details ); 
+
+            
+            $Corr=1;
+            $impuestoTotal=0;
+            $impuesto=0;
+        
+
+
+            $identificador = $business_details->id.$transaction_id.$transaction->invoice_no;
+            
+            if(empty($customer->email)){
+                $correos=$location_details->email;
+            }else{
+                if(empty($location_details->email)){
+                    $correos=$customer->email;
+                }else{
+                    $correos=$customer->email.';'.$location_details->email;
+                }
+                
+            }
+
+            //Generar XML
+                $xml = new \SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?>
+                <dte:GTDocumento xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:dte="http://www.sat.gob.gt/dte/fel/0.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Version="0.1" xsi:schemaLocation="http://www.sat.gob.gt/dte/fel/0.2.0"></dte:GTDocumento>');
+                // SAT
+                $dte_SAT = $xml->addChild('dte:SAT');
+                $dte_SAT->addAttribute('ClaseDocumento', 'dte');
+                // SAT -> DTE
+                $dte_DTE = $dte_SAT->addChild('dte:DTE');
+                $dte_DTE->addAttribute('ID', 'DatosCertificados');
+                // SAT -> DTE -> DatosEmision
+                $dte_DatosEmision = $dte_DTE->addChild('dte:DatosEmision');
+                $dte_DatosEmision->addAttribute('ID', 'DatosEmision');
+                // SAT -> DTE -> DatosEmision -> DatosGenerales
+                $dte_DatosGenerales = $dte_DatosEmision->addChild('dte:DatosGenerales');
+                $dte_DatosGenerales->addAttribute('CodigoMoneda', 'GTQ');
+                $dte_DatosGenerales->addAttribute('FechaHoraEmision', $FechaActualFormat);
+                $dte_DatosGenerales->addAttribute('Tipo', $felconfigurations->tipo_fact);
+                // SAT -> DTE -> DatosEmision -> Emisor
+                $dte_Emisor = $dte_DatosEmision->addChild('dte:Emisor');
+                $dte_Emisor->addAttribute('AfiliacionIVA', 'GEN');
+                $dte_Emisor->addAttribute('CodigoEstablecimiento', $felconfigurations->codigo_establecimiento);
+                $dte_Emisor->addAttribute('CorreoEmisor', $location_details->email);
+                $dte_Emisor->addAttribute('NITEmisor', $felconfigurations->nit_emisor); 
+                $dte_Emisor->addAttribute('NombreComercial', $location_details->name);
+                $dte_Emisor->addAttribute('NombreEmisor', $felconfigurations->nombre_emisor); 
+                // SAT -> DTE -> DatosEmision -> Emisor -> DireccionEmisor
+                $dte_DireccionEmisor = $dte_Emisor->addChild('dte:DireccionEmisor');
+                $dte_DireccionEmisor->addChild('Direccion', $location_details->landmark);
+                $dte_DireccionEmisor->addChild('CodigoPostal', $location_details->zip_code);
+                $dte_DireccionEmisor->addChild('Municipio', $location_details->state);
+                $dte_DireccionEmisor->addChild('Departamento', $location_details->city);
+                $dte_DireccionEmisor->addChild('Pais', 'GT');
+                // SAT -> DTE -> DatosEmision -> Receptor
+                $dte_Receptor = $dte_DatosEmision->addChild('dte:Receptor');
+                $dte_Receptor->addAttribute('CorreoReceptor', $correos);
+                $dte_Receptor->addAttribute('IDReceptor', $customer->contact_id);
+                if(strlen( $customer->contact_id)==13){ //arreglar
+                    $dte_Receptor->addAttribute('NombreReceptor', 'CONSUMIDOR FINAL');
+                    $dte_Receptor->addAttribute('TipoEspecial', 'CUI'); 
+                }else {
+                    $dte_Receptor->addAttribute('NombreReceptor', $customer->name);
+                }
+                // SAT -> DTE -> DatosEmision -> Receptor -> DireccionReceptor
+                $dte_DireccionReceptor = $dte_Receptor->addChild('dte:DireccionReceptor');
+                $dte_DireccionReceptor->addChild('Direccion', $customer->landmark);
+                $dte_DireccionReceptor->addChild('CodigoPostal', $location_details->zip_code);
+                $dte_DireccionReceptor->addChild('Municipio', $customer->city);
+                $dte_DireccionReceptor->addChild('Departamento', $customer->state);
+                $dte_DireccionReceptor->addChild('Pais', 'GT');
+                // SAT -> DTE -> DatosEmision -> Frases
+                $dte_Frases = $dte_DatosEmision->addChild('dte:Frases');
+                // SAT -> DTE -> DatosEmision -> Frases -> Frase
+                $dte_Frase = $dte_Frases->addChild('dte:Frase');
+                $dte_Frase->addAttribute('TipoFrase', $felconfigurations->tipo_frase);
+                $dte_Frase->addAttribute('CodigoEscenario', $felconfigurations->codigo_escenario);
+                // SAT -> DTE -> DatosEmision -> Items
+                $dte_Items = $dte_DatosEmision->addChild('dte:Items');
+                // SAT -> DTE -> DatosEmision -> Items -> Item  
+                //Detalle de producto <<<<---
+            foreach ($details['lines'] as $line) {
+                $num = (float)str_replace(',', '', $line['line_total']); //Se formatea string a texto cuando por la , y . laec052023
+                $impuesto=$line['unit_price_inc_tax']*0.12;
+                $dte_Item = $dte_Items->addChild('dte:Item');
+                $dte_Item->addAttribute('BienOServicio', 'B');
+                $dte_Item->addAttribute('NumeroLinea', $Corr);
+                $cantidad=(float)str_replace(',', '', $line['quantity']); //Se formatea string a texto cuando por la , y . laec052023
+                $dte_Item->addChild('Cantidad', $cantidad);
+                $dte_Item->addChild('UnidadMedida','M');
+                $dte_Item->addChild('Descripcion', $line['name']);
+                $dte_Item->addChild('PrecioUnitario', $line['unit_price_inc_tax']);
+                $dte_Item->addChild('Precio', $num);
+                $dte_Item->addChild('Descuento',$line['line_discount'] );
+                // SAT -> DTE -> DatosEmision -> Items -> Item -> Impuestos
+                $dte_Impuestos = $dte_Item->addChild('dte:Impuestos');
+                // SAT -> DTE -> DatosEmision -> Items -> Item -> Impuestos -> Impuesto
+                $dte_Impuesto = $dte_Impuestos->addChild('dte:Impuesto');
+                $dte_Impuesto->addChild('NombreCorto', 'IVA');
+                $dte_Impuesto->addChild('CodigoUnidadGravable', '1');
+                $montoGravable= number_format(($num-$line['line_discount'])/1.12,2, '.', ''); //dos decimales sin coma cuando pasa de mil
+                $MontoImpuesto =$num-$montoGravable;
+                $dte_Impuesto->addChild('MontoGravable', $montoGravable);
+                $dte_Impuesto->addChild('MontoImpuesto', number_format($MontoImpuesto,2, '.', '')); //dos decimales sin coma cuando pasa de mil
+                // SAT -> DTE -> DatosEmision -> Items -> Item -> Total
+                $dte_Item->addChild('Total', $num);
+                $Corr++;
+                $impuestoTotal=$impuestoTotal+$MontoImpuesto;
+            }//finaliza detalle de producto
+                // SAT -> DTE -> DatosEmision -> Totales
+                $dte_Totales = $dte_DatosEmision->addChild('dte:Totales');
+                // SAT -> DTE -> DatosEmision -> Totales -> TotalImpuestos  
+                $dte_TotalImpuestos = $dte_Totales->addChild('dte:TotalImpuestos');
+                // SAT -> DTE -> DatosEmision -> Totales -> TotalImpuestos -> TotalImpuesto 
+                $dte_TotalImpuesto = $dte_TotalImpuestos->addChild('dte:TotalImpuesto');
+                $dte_TotalImpuesto->addAttribute('NombreCorto', 'IVA');
+                $dte_TotalImpuesto->addAttribute('TotalMontoImpuesto', number_format($impuestoTotal,2, '.', ''));
+                // SAT -> DTE -> DatosEmision -> Totales -> GranTotal  
+                $dte_Totales->addChild('GranTotal', $transaction->final_total );
+                // SAT -> DTE
+                $dte_Adenda = $dte_SAT->addChild('dte:Adenda');
+                $dte_Adenda->addChild('Codigo_cliente', $customer->id);//parametrizar
+                $dte_Adenda->addChild('Observaciones',$transaction->additional_notes);
+                
+    
+            // Convertir el XML en una cadena
+            $xmlString = $xml->asXML();
+
+            //Convierte XML a base64
+            // $archivo= base64_encode($xmlString);
+            $client = new Client(); /**************  Cambiar la forma de consumir a XML    ********** */
+
+            // Check if the directory exists, if not, create it
+            // Define the path and file
+            $directory = 'file_fel';
+            $fileError3 = $directory . '/Cert' . $transaction_id . 'Error.txt';
+
+            // Check if the directory exists, if not, create it
+            if (!is_dir($directory)) {
+                mkdir($directory, 0777, true); // 0777 sets full permissions, and true allows the creation of nested directories
+            }
+            //Eliminar al pasar a produccion !!!!!!!!!!!!!!!!!!!!
+            $client = new \GuzzleHttp\Client([
+                'verify' => false
+            ]);
+            //Mando archivo firmado para certificarse
+            $responsecert = $client->post(
+                $felconfigurations->link_certificar,
+                [
+                    'headers' => [
+                        'Content-Type' => $felconfigurations->Content_Type,
+                        'UsuarioFirma' => $felconfigurations->usuario_firma,
+                        'LlaveFirma' => $felconfigurations->llave_firma,
+                        'UsuarioApi' => $felconfigurations->usuario_api,
+                        'LlaveApi' => $felconfigurations->llave_api,
+                        'identificador' => $identificador
+                    ],
+                    'body' => $xmlString
+                ]
+            );
+            
+            $estado=$responsecert->getStatusCode();
+
+            if($estado=='200'){
+                $resultadoj=$responsecert->getBody()->getContents(); // recibe un json  
+                $resultado = json_decode($resultadoj); //paso el json recibido a array
+                if ($resultado->resultado=='true') {
+                    # Acción si es correcto
+                    // Guardar el XML Certificado en bd
+                    $felfac= FelFacturas::create([
+                        'id_transaction' => $transaction_id,
+                        'bussines_id' => $location_id,
+                        'invoice_no' => $transaction->invoice_no,
+                        'fel_certificado' =>$resultado->xml_certificado,
+                        'no_acceso' => $identificador,
+                        'nitreceptor' => $customer->contact_id,
+                        'numerofel' => $resultado->numero,
+                        'numeroautorizacion' => $resultado->uuid,
+                        'montogravable' => $montoGravable,
+                        'impuestototal' => $impuestoTotal,
+                        'seriefel' => $resultado->serie,
+                        'fechacertificacion' => $resultado->fecha,
+                        'estado' =>'CERT',
+                    ]);
+                    //obtenemos el ID del registro para actualizarlo
+                    $felfac = FelFacturas::find($felfac->id);
+                    return $resultado->uuid;
+                
+                }else{
+                    $felfac= FelFacturas::create([
+                        'id_transaction' => $transaction_id,
+                        'bussines_id' => $location_id,
+                        'invoice_no' => $transaction->invoice_no,
+                        'no_acceso' => $identificador,
+                        'nitreceptor' => $customer->contact_id,
+                        'montogravable' => $montoGravable,
+                        'impuestototal' => $impuestoTotal,
+                        'estado' =>'ERROR',
+                        //'fel_certificado' =>
+                    ]);
+                    # Accion si ocurre un error
+                    $fileError3 = 'file_fel/Cert'.$transaction_id.'Error.txt';
+                    file_put_contents($fileError3, $resultadoj);
+                    throw new PurchaseSellMismatch("Error al Certificar documento con SAT".$resultado->descripcion);
+                }
+
+    
+            
+            }else{
+                //validación si respuesta es incorrecta
+                throw new PurchaseSellMismatch("Error al Certificar documento con SAT".$estado);
+            }
+
+        }catch(\Exception $e){
+            throw new PurchaseSellMismatch("Error al Certificar documento con SAT".$e);
+        }
+    }
     /**
      * Gives the receipt details in proper format.
      *
@@ -5010,6 +5275,12 @@ class TransactionUtil extends Util
                     'SR.return_parent_id'
                 )
                 ->leftJoin(
+                    'fel_facturas AS fel',
+                    'transactions.id',
+                    '=',
+                    'fel.id_transaction'
+                )
+                ->leftJoin(
                     'types_of_services AS tos',
                     'transactions.types_of_service_id',
                     '=',
@@ -5023,6 +5294,8 @@ class TransactionUtil extends Util
                     'transactions.type',
                     'transactions.is_direct_sale',
                     'transactions.invoice_no',
+                    'fel.numerofel',
+                    'fel.numeroautorizacion',
                     'transactions.invoice_no as invoice_no_text',
                     'contacts.name',
                     'contacts.mobile',
