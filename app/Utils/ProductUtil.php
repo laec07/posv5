@@ -1692,7 +1692,6 @@ class ProductUtil extends Util
                 'variations.sell_price_inc_tax as selling_price',
                 'variations.sub_sku',
                 'U.short_name as unit',
-                'pl.sell_price' //LAESTRADA
             );
 
         if (! empty($price_group_id)) {
