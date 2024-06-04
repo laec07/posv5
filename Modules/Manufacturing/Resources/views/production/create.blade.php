@@ -89,8 +89,8 @@
 			@if(request()->session()->get('business.enable_lot_number') == 1)
 				<div class="col-sm-3">
 					<div class="form-group">
-						{!! Form::label('lot_number', __('lang_v1.lot_number').':') !!}
-						{!! Form::text('lot_number', null, ['class' => 'form-control']); !!}
+						{!! Form::label('lot_number', __('lang_v1.lot_number').':*') !!}
+						{!! Form::text('lot_number', null, ['class' => 'form-control','required']); !!}
 					</div>
 				</div>
 			@endif
