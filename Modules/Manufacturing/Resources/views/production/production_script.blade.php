@@ -212,7 +212,7 @@ function seleccionar_lote(selectElement) {
 	            dataType: 'json',
 	            success: function(result) {
                     //obtengo el precio del lote
-                    total = parseFloat(result.sell_price);
+                    total = parseFloat(result.purchase_price);
                     // lo asigno al campo
                     document.querySelector('.ingredient_price').value = total;
                     // actualizo montos
