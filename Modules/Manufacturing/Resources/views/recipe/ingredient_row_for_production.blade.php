@@ -17,35 +17,37 @@
 		}
 		@endphp
 		@if(!empty($ingredient['lot_numbers']))
-			<select class="form-control lot_number input-sm" name="ingredients[{{$ingredient['id']}}][lot_number]">
-				<option value="">@lang('lang_v1.lot_n_expiry')</option>
-				@foreach($ingredient['lot_numbers'] as $lot_number)
-					@php
-						$selected = "";
-						if($lot_number->purchase_line_id == $lot_no_line_id){
-							$selected = "selected";
-						}
+		<select class="form-control lot_number input-sm" name="ingredients[{{$ingredient['id']}}][lot_number]" onchange="seleccionar_lote(this)">
+			<option value="">@lang('lang_v1.lot_n_expiry')</option>
+			@foreach($ingredient['lot_numbers'] as $lot_number)
+				@php
+					$selected = "";
+					if($lot_number->purchase_line_id == $lot_no_line_id){
+						$selected = "selected";
+					}
 
-						$expiry_text = '';
-						if($exp_enabled == 1 && !empty($lot_number->exp_date)){
-							if( \Carbon\Carbon::now()->gt(\Carbon\Carbon::createFromFormat('Y-m-d', $lot_number->exp_date)) ){
-								$expiry_text = '(' . __('report.expired') . ')';
-							}
+					$expiry_text = '';
+					if($exp_enabled == 1 && !empty($lot_number->exp_date)){
+						if( \Carbon\Carbon::now()->gt(\Carbon\Carbon::createFromFormat('Y-m-d', $lot_number->exp_date)) ){
+							$expiry_text = '(' . __('report.expired') . ')';
 						}
-					@endphp
-					<option value="{{$lot_number->purchase_line_id}}" {{$selected}}>
-						@if(!empty($lot_number->lot_number) && $lot_enabled == 1)
-							{{$lot_number->lot_number}} 
-						@endif
-						@if($lot_enabled == 1 && $exp_enabled == 1) - @endif
-						@if($exp_enabled == 1 && !empty($lot_number->exp_date))
-							@lang('product.exp_date'): {{@format_date($lot_number->exp_date)}}
-						@endif
-						{{$expiry_text}}
-						({{ $lot_number->qty_formated }})
-					</option>
-				@endforeach
-			</select>
+					}
+				@endphp
+				<option value="{{$lot_number->purchase_line_id}}" {{$selected}}>
+					@if(!empty($lot_number->lot_number) && $lot_enabled == 1)
+						{{$lot_number->lot_number}} 
+					@endif
+					@if($lot_enabled == 1 && $exp_enabled == 1) - @endif
+					@if($exp_enabled == 1 && !empty($lot_number->exp_date))
+						@lang('product.exp_date'): {{@format_date($lot_number->exp_date)}}
+					@endif
+					{{$expiry_text}}
+					({{ $lot_number->qty_formated }})
+				</option>
+			@endforeach
+		</select>
+
+
 		@endif
 		<!--FIN Manejo de lotes LAESTRADA -->
 	</td>

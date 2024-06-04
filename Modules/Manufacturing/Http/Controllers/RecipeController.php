@@ -6,6 +6,7 @@ use App\Utils\BusinessUtil;
 use App\Utils\ModuleUtil;
 use App\Utils\TransactionUtil;
 use App\Variation;
+use App\PurchaseLine;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
@@ -584,7 +585,18 @@ class RecipeController extends Controller
 
         return $output;
     }
+/**
+     * Show the specified sell price by lots resource.
+     * LAESTRADA
+     * @return Response
+     */
+    public function getsellprice_lote($id_transaction)
+    {
 
+        $purchaseLine = PurchaseLine::find($id_transaction);
+
+            return $purchaseLine;
+    }
     /**
      * Check if recipe exist.
      *

@@ -128,6 +128,7 @@
 
                 var line_total = line_unit_price * line_total_quantity * line_multiplier;
                 $(this).find('span.ingredient_total_price').text(__currency_trans_from_en(line_total, true));
+                $(this).find('input.total_price').val(__currency_trans_from_en(line_total, true));
                 $(this).find('span.row_final_quantity').text(__currency_trans_from_en(line_final_quantity, false));
 
                 var line_unit_name = '';
@@ -198,4 +199,28 @@
             qty_element.trigger('change');
         }
     });
+
+function seleccionar_lote(selectElement) {
+    // Obtiene el valor seleccionado (purchase_line_id)
+    var selectedValue = selectElement.value;
+    // creao que estan de mas, ya no los quite por tiempo, hay que quitarlos y hacer pruebas
+    var finalQuantityElement = document.querySelector('.row_final_quantity');
+    var finalQuantityValue = finalQuantityElement.textContent;
+
+    $.ajax({
+	            url: "/manufacturing/getsellprice/" + selectedValue ,
+	            dataType: 'json',
+	            success: function(result) {
+                    //obtengo el precio del lote
+                    total = parseFloat(result.sell_price);
+                    // lo asigno al campo
+                    document.querySelector('.ingredient_price').value = total;
+                    // actualizo montos
+                    calculateRecipeTotal();
+                    document.querySelector('.total_price').textContent = ingredient_price;
+	            },
+	        });
+
+}
+
 </script>

@@ -355,8 +355,7 @@ class ProductionController extends Controller
                     'location_id' => $production_sell->location_id,
                     'pos_settings' => $pos_settings,
                 ];
-                // Nota para Luis del Futuro: $production_sell->sell_lines lleva el lot_num_id, mapPurchaseSell iserta la transaccion
-                // aún no se donde se obtiene la data porque empezaron a gritar la gente, animo!!!
+
                 $this->transactionUtil->mapPurchaseSell($business, $production_sell->sell_lines, 'production_purchase');
             }
             
@@ -529,6 +528,7 @@ class ProductionController extends Controller
         ->get();
             return view('manufacturing::production.showmodal')->with(compact('results'));
         }
+
 
     /**
      * Show the form for editing the specified resource.

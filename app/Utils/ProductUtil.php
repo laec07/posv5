@@ -1219,7 +1219,7 @@ class ProductUtil extends Util
             $purchase_line->sub_unit_id = ! empty($data['sub_unit_id']) ? $data['sub_unit_id'] : null;
             $purchase_line->purchase_order_line_id = ! empty($data['purchase_order_line_id']) ? $data['purchase_order_line_id'] : null;
             $purchase_line->purchase_requisition_line_id = ! empty($data['purchase_requisition_line_id']) && $transaction->type == 'purchase_order' ? $data['purchase_requisition_line_id'] : null;
-
+            $purchase_line->sell_price = !empty($data["default_sell_price"])? ($this->num_uf($data['default_sell_price'], $currency_details) * $exchange_rate) / $multiplier : $data["pp_without_discount"]; //LAESTRADA Nuevo campo para almacenar precio de venta
             if (! empty($data['secondary_unit_quantity'])) {
                 $purchase_line->secondary_unit_quantity = $this->num_uf($data['secondary_unit_quantity']);
             }
@@ -1691,7 +1691,8 @@ class ProductUtil extends Util
                 'VLD.qty_available',
                 'variations.sell_price_inc_tax as selling_price',
                 'variations.sub_sku',
-                'U.short_name as unit'
+                'U.short_name as unit',
+                'pl.sell_price' //LAESTRADA
             );
 
         if (! empty($price_group_id)) {

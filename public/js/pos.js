@@ -414,6 +414,8 @@ $(document).ready(function() {
         var multiplier = 1;
         var unit_name = '';
         var sub_unit_length = tr.find('select.sub_unit').length;
+
+        
         if (sub_unit_length > 0) {
             var select = tr.find('select.sub_unit');
             multiplier = parseFloat(select.find(':selected').data('multiplier'));
@@ -423,7 +425,7 @@ $(document).ready(function() {
         if ($(this).val() && !allow_overselling) {
             var lot_qty = $('option:selected', $(this)).data('qty_available');
             var max_err_msg = $('option:selected', $(this)).data('msg-max');
-
+            
             if (sub_unit_length > 0) {
                 lot_qty = lot_qty / multiplier;
                 var lot_qty_formated = __number_f(lot_qty, false);
@@ -464,6 +466,31 @@ $(document).ready(function() {
                 },
             });
         }
+        
+        //LAESTRADA Trae el precio del lote, si seleccionan lote
+        var selectedValue = __read_number($(this));      
+            $.ajax({
+                        url: "/manufacturing/getsellprice/" + selectedValue ,
+                        dataType: 'json',
+                        success: function(result) {
+                            // recibo precio del lote
+                            total = parseFloat(result.sell_price);
+                            unit_price = total;
+                            //asigno nuevo valores a los campos
+                            __write_number(tr.find('input.pos_unit_price'), unit_price);
+                            var quantity = __read_number(tr.find('input.pos_quantity'));
+                            var line_total = quantity * unit_price;
+                            __write_number(tr.find('input.pos_line_total'), line_total, false, 2);
+                            tr.find('span.pos_line_total_text').text(__currency_trans_from_en(line_total, true));
+                            //Actualiza montos
+                            pos_each_row(tr);
+                            pos_total_row();
+                            round_row_to_iraqi_dinnar(tr);
+
+                        },
+                    });
+        // LAESTRADA FIN
+        
         qty_element.trigger('change');
     });
 
@@ -1806,9 +1833,9 @@ function calculate_billing_details(price_total) {
 
     $('span.total_payable_span').text(__currency_trans_from_en(total_payable_rounded, true));
 
-    //Check if edit form then don't update price.
+    //Check if edit form then don't update price.  LAESTRADA SOLI deja el total a 0
     if ($('form#edit_pos_sell_form').length == 0 && $('form#edit_sell_form').length == 0) {
-        __write_number($('.payment-amount').first(), total_payable_rounded);
+    //    __write_number($('.payment-amount').first(), total_payable_rounded);
     }
 
     $(document).trigger('invoice_total_calculated');
