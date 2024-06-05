@@ -1119,6 +1119,7 @@ class TransactionUtil extends Util
                 $dte_Adenda = $dte_SAT->addChild('dte:Adenda');
                 $dte_Adenda->addChild('Codigo_cliente', $customer->id);//parametrizar
                 $dte_Adenda->addChild('Observaciones',$transaction->additional_notes);
+                $dte_Adenda->addChild('telefono',$location_details->mobile);
                 
     
             // Convertir el XML en una cadena
