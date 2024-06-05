@@ -467,8 +467,8 @@ $(document).ready(function() {
             });
         }
         
-        //LAESTRADA Trae el precio del lote, si seleccionan lote
-        var selectedValue = __read_number($(this));      
+        //LAESTRADA Trae el precio del lote, si seleccionan lote (comentado porque se entendio mal el requerimiento)
+      /*  var selectedValue = __read_number($(this));      
             $.ajax({
                         url: "/manufacturing/getsellprice/" + selectedValue ,
                         dataType: 'json',
@@ -488,7 +488,7 @@ $(document).ready(function() {
                             round_row_to_iraqi_dinnar(tr);
 
                         },
-                    });
+                    });*/
         // LAESTRADA FIN
         
         qty_element.trigger('change');
