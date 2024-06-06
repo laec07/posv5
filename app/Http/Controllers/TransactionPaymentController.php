@@ -103,8 +103,14 @@ class TransactionPaymentController extends Controller
                 DB::beginTransaction();
 
                 $ref_count = $this->transactionUtil->setAndGetReferenceCount($prefix_type);
+
+                if( $prefix_type == 'sell_payment'){ //LAESTRADA Deja solo correlativo si prefijos para boleta de pago
+                    $inputs['payment_ref_no'] =$ref_count;
+                }else{
+                    $inputs['payment_ref_no'] = $this->transactionUtil->generateReferenceNumber($prefix_type, $ref_count);
+                }
                 //Generate reference number
-                $inputs['payment_ref_no'] = $this->transactionUtil->generateReferenceNumber($prefix_type, $ref_count);
+                
 
                 $inputs['business_id'] = $request->session()->get('business.id');
                 $inputs['document'] = $this->transactionUtil->uploadFile($request, 'document', 'documents');
