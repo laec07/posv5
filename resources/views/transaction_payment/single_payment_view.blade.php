@@ -2,14 +2,14 @@
   <div class="modal-content">
     <div class="modal-header">
       <button type="button" class="close no-print" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-      <h4 class="modal-title"> Recibo de caja No. <!-- LAESTRADA Cambio de texto para impresion -->
+      <h4 class="modal-title no-print"> Recibo de caja No. <!-- LAESTRADA Cambio de texto para impresion -->
         @if(!empty($single_payment_line->payment_ref_no))
            {{ $single_payment_line->payment_ref_no }} 
         @endif
       </h4>
       <h4 class="modal-title visible-print-block">
         @if(!empty($single_payment_line->payment_ref_no))
-          ( @lang('purchase.ref_no'): {{ $single_payment_line->payment_ref_no }} )
+          Recibo de caja No. {{ $single_payment_line->payment_ref_no }} 
         @endif
       </h4>
     </div>
