@@ -128,7 +128,7 @@
                                                 <td>{{ number_format($product->quantity, 2).$product->unit }}</td>
                                                 <td>
                                                     @if($product->type == 'production_purchase')                                                
-                                                 <button data-href="{{ route('production.getlot', ['id' => $product->lot_number]) }}" class="btn btn-info btn-xs btn-modal" data-container=".view_modal"><i class="fa fa-eye"></i></button>
+                                                 <button data-href="{{ route('production.getlot', ['id' => $product->lot_number, 'id_product' => $product->product_id]) }}" class="btn btn-info btn-xs btn-modal" data-container=".view_modal"><i class="fa fa-eye"></i></button>
                                                    @endif
                                                 </td>
                                             </tr>

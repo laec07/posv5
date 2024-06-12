@@ -20,7 +20,7 @@ Route::middleware('web', 'authh', 'SetSessionData', 'auth', 'language', 'timezon
     Route::post('/update-product-prices', [Modules\Manufacturing\Http\Controllers\RecipeController::class, 'updateRecipeProductPrices']);
     
 
-    Route::get('/production/getlot/{id}', [\Modules\Manufacturing\Http\Controllers\ProductionController::class, 'showstockreport'])->name('production.getlot');
+    Route::get('/production/getlot/{id}/{id_product}', [\Modules\Manufacturing\Http\Controllers\ProductionController::class, 'showstockreport'])->name('production.getlot');
 
    // Route::get('/getsellprice/{id_transaction}', [Modules\Manufacturing\Http\Controllers\RecipeController::class, 'getRecipeDetails']);
     Route::get('/getsellprice/{id}', [Modules\Manufacturing\Http\Controllers\RecipeController::class, 'getsellprice_lote']);

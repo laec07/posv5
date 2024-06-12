@@ -10,7 +10,7 @@ use App\Utils\ModuleUtil;
 use App\Utils\ProductUtil;
 use App\Utils\TransactionUtil;
 use App\Variation;
-use App\PurchaseLine;
+use App\Product;
 use DB;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -305,7 +305,7 @@ class ProductionController extends Controller
                 $mfg_waste_percent = ! empty($ingredient_quantities[$variation_details['id']]['mfg_waste_percent']) ? $this->productUtil->num_uf($ingredient_quantities[$variation_details['id']]['mfg_waste_percent']) : 0;
 
                 $mfg_ingredient_group_id = ! empty($ingredient_quantities[$variation_details['id']]['mfg_ingredient_group_id']) ? $ingredient_quantities[$variation_details['id']]['mfg_ingredient_group_id'] : null;
-                //LAESTRADA Se obtiene Número de lote
+                //LAESTRADA Se obtiene Número de lote 
                 $line_lot_numer_id = ! empty($ingredient_quantities[$variation_details['id']]['lot_number']) ? $ingredient_quantities[$variation_details['id']]['lot_number'] : null;
 
                 $sell_lines[] = [
@@ -505,13 +505,13 @@ class ProductionController extends Controller
      * LAESTRADA
      * @return Response
      */
-    public function showstockreport($lot_num)
+    public function showstockreport($lot_num, $id_product )
     {
         $business_id = request()->session()->get('user.business_id');
         if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.access_production')) {
             abort(403, 'Unauthorized action.');
         }
-
+/*
         $results = PurchaseLine::where('purchase_lines.lot_number', $lot_num)
         ->join('transactions as t', 't.mfg_parent_production_purchase_id', '=', 'purchase_lines.transaction_id')
         ->join('transaction_sell_lines as tsl', 't.id', '=', 'tsl.transaction_id')
@@ -525,7 +525,40 @@ class ProductionController extends Controller
             'pl2.lot_number as lot_number',
             'u.actual_name as unit_name'
         )
-        ->get();
+        ->get();*/
+
+        $results = Product::where('products.business_id', $business_id)
+            ->leftjoin('units', 'products.unit_id', '=', 'units.id')
+            ->join('variations as v', 'products.id', '=', 'v.product_id')
+            ->join('purchase_lines as pl', 'v.id', '=', 'pl.variation_id')
+            ->leftjoin('transaction_sell_lines_purchase_lines as tspl', 'pl.id', '=', 'tspl.purchase_line_id')
+            ->join('transactions as t', 'pl.transaction_id', '=', 't.id')
+            ->join('transactions as t2', 't2.mfg_parent_production_purchase_id', '=', 't.id')
+            ->join('transaction_sell_lines as tsl2', 'tsl2.transaction_id', '=', 't2.id')
+            ->join('purchase_lines as pl2', 'tsl2.lot_no_line_id', '=', 'pl2.id')
+            ->select(
+                't.id as id_trans',
+                'pl2.lot_number',
+                'products.name as product_name',
+                'products.id as product_id', 
+                'units.short_name as unit',
+                't.type as type',
+                DB::raw("( COALESCE((SELECT SUM(quantity - quantity_returned) 
+                    FROM purchase_lines AS pls 
+                    WHERE pls.variation_id = v.id
+                        AND t.id = pls.transaction_id 
+                        AND pls.lot_number = pl.lot_number), 0) - 
+                    SUM(COALESCE((tspl.quantity - tspl.qty_returned), 0))) AS quantity")
+            )
+            ->where('pl.lot_number', $lot_num)
+            ->where('products.id', $id_product)
+            ->groupBy('t.id', 'products.name')
+            ->havingRaw('SUM(pl.quantity) > 0')
+            ->orderBy('pl.lot_number')
+            ->havingRaw('quantity > 0') // Muestra solo lotes con stock disponible LAESTRADA
+            ->get();
+
+
             return view('manufacturing::production.showmodal')->with(compact('results'));
         }
 

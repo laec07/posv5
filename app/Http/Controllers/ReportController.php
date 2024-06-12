@@ -2421,8 +2421,10 @@ class ReportController extends Controller
             ->join('transactions as t', 'pl.transaction_id', '=', 't.id')
             ->select(
                 't.id as id_trans',
+
                 'pl.lot_number',
                 'products.name as product_name',
+                'products.id as product_id', // se agrega id producto para busqueda LAESTRADA
                 'units.short_name as unit',
                 't.type as type',
                 DB::raw("( COALESCE((SELECT SUM(quantity - quantity_returned) 
@@ -2435,7 +2437,7 @@ class ReportController extends Controller
             ->groupBy('pl.lot_number', 'products.name')
             ->havingRaw('SUM(pl.quantity) > 0')
             ->orderBy('pl.lot_number')
-            ->havingRaw('quantity > 0') // Muestra solo lotes con stock disponible
+            ->havingRaw('quantity > 0') // Muestra solo lotes con stock disponible LAESTRADA
             ->get();
 
         // Agrupa los productos por número de lote

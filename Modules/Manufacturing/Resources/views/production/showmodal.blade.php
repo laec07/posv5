@@ -25,7 +25,7 @@
                         @foreach($results as $result)
                             <tr>
                                 <td>{{ $result->product_name }}</td>
-                                <td>{{ $result->quantity }} {{ $result->unit_name }}</td>
+                                <td>{{  number_format($result->quantity, 2)}} CAJAS </td>
                                 <td>{{ $result->lot_number }}</td>
 
                             </tr>
