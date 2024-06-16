@@ -199,28 +199,27 @@
             qty_element.trigger('change');
         }
     });
+    //LAESTRADA Busca precio compra lote y actualiza costo producción
+    function seleccionar_lote(selectElement) { 
+        // Obtiene el valor seleccionado (purchase_line_id)
+        var selectedValue = selectElement.value
+        // Encuentra el contenedor de la fila correspondiente
+        var ingredientRow = selectElement.closest('.ingredient-row');
+        $.ajax({
+            url: "/manufacturing/getsellprice/" + selectedValue,
+            dataType: 'json',
+            success: function(result) {
+                // Obtiene el precio del lote
+                var total = parseFloat(result.purchase_price);
+                // Asigna el precio al campo dentro de la fila correspondiente
+                ingredientRow.querySelector('.ingredient_price').value = total;
+                // Actualiza el texto del .total_price dentro de la fila correspondiente
+                // Actualiza montos
+                calculateRecipeTotal();
+            },
+        });
+    }
 
-function seleccionar_lote(selectElement) {
-    // Obtiene el valor seleccionado (purchase_line_id)
-    var selectedValue = selectElement.value;
-    // creao que estan de mas, ya no los quite por tiempo, hay que quitarlos y hacer pruebas
-    var finalQuantityElement = document.querySelector('.row_final_quantity');
-    var finalQuantityValue = finalQuantityElement.textContent;
 
-    $.ajax({
-	            url: "/manufacturing/getsellprice/" + selectedValue ,
-	            dataType: 'json',
-	            success: function(result) {
-                    //obtengo el precio del lote
-                    total = parseFloat(result.purchase_price);
-                    // lo asigno al campo
-                    document.querySelector('.ingredient_price').value = total;
-                    // actualizo montos
-                    calculateRecipeTotal();
-                    document.querySelector('.total_price').textContent = ingredient_price;
-	            },
-	        });
-
-}
 
 </script>

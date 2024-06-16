@@ -1,7 +1,7 @@
 <tr>
 	<td>
 		{{$ingredient['full_name']}}
-		<input type="hidden" class="ingredient_price" value="{{$ingredient['dpp_inc_tax']}}">
+		<input type="hidden" class="ingredient_price2" name="ingredients[{{$ingredient['id']}}][price]" value="{{$ingredient['dpp_inc_tax']}}">
 		<input type="hidden" name="ingredients[{{$ingredient['id']}}][variation_id]"  class="ingredient_id" value="{{$ingredient['variation_id']}}">
 		<input type="hidden" class="unit_quantity" value="{{$ingredient['unit_quantity']}}">
 		<input type="hidden" name="ingredients[{{$ingredient['id']}}][mfg_ingredient_group_id]" value="{{$ingredient['mfg_ingredient_group_id']}}">
@@ -17,38 +17,41 @@
 		}
 		@endphp
 		@if(!empty($ingredient['lot_numbers']))
-		<select class="form-control lot_number input-sm" name="ingredients[{{$ingredient['id']}}][lot_number]" onchange="seleccionar_lote(this)">
-			<option value="">@lang('lang_v1.lot_n_expiry')</option>
-			@foreach($ingredient['lot_numbers'] as $lot_number)
-				@php
-					$selected = "";
-					if($lot_number->purchase_line_id == $lot_no_line_id){
-						$selected = "selected";
-					}
+			<div class="ingredient-row" data-ingredient-id="{{ $ingredient['id'] }}">
+				<select class="form-control lot_number input-sm" name="ingredients[{{$ingredient['id']}}][lot_number]" onchange="seleccionar_lote(this)">
+					<option value="">@lang('lang_v1.lot_n_expiry')</option>
+					@foreach($ingredient['lot_numbers'] as $lot_number)
+						@php
+							$selected = "";
+							if($lot_number->purchase_line_id == $lot_no_line_id){
+								$selected = "selected";
+							}
 
-					$expiry_text = '';
-					if($exp_enabled == 1 && !empty($lot_number->exp_date)){
-						if( \Carbon\Carbon::now()->gt(\Carbon\Carbon::createFromFormat('Y-m-d', $lot_number->exp_date)) ){
-							$expiry_text = '(' . __('report.expired') . ')';
-						}
-					}
-				@endphp
-				<option value="{{$lot_number->purchase_line_id}}" {{$selected}}>
-					@if(!empty($lot_number->lot_number) && $lot_enabled == 1)
-						{{$lot_number->lot_number}} 
-					@endif
-					@if($lot_enabled == 1 && $exp_enabled == 1) - @endif
-					@if($exp_enabled == 1 && !empty($lot_number->exp_date))
-						@lang('product.exp_date'): {{@format_date($lot_number->exp_date)}}
-					@endif
-					{{$expiry_text}}
-					({{ $lot_number->qty_formated }})
-				</option>
-			@endforeach
-		</select>
-
-
+							$expiry_text = '';
+							if($exp_enabled == 1 && !empty($lot_number->exp_date)){
+								if( \Carbon\Carbon::now()->gt(\Carbon\Carbon::createFromFormat('Y-m-d', $lot_number->exp_date)) ){
+									$expiry_text = '(' . __('report.expired') . ')';
+								}
+							}
+						@endphp
+						<option value="{{$lot_number->purchase_line_id}}" {{$selected}}>
+							@if(!empty($lot_number->lot_number) && $lot_enabled == 1)
+								{{$lot_number->lot_number}} 
+							@endif
+							@if($lot_enabled == 1 && $exp_enabled == 1) - @endif
+							@if($exp_enabled == 1 && !empty($lot_number->exp_date))
+								@lang('product.exp_date'): {{@format_date($lot_number->exp_date)}}
+							@endif
+							{{$expiry_text}}
+							({{ $lot_number->qty_formated }})
+						</option>
+					@endforeach
+				</select>
+				<input type="hidden" class="ingredient_price" name="ingredients[{{$ingredient['id']}}][price]" value="{{$ingredient['dpp_inc_tax']}}">
+			</div>
 		@endif
+
+
 		<!--FIN Manejo de lotes LAESTRADA -->
 	</td>
 	<td>
