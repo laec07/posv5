@@ -1047,8 +1047,8 @@ class TransactionUtil extends Util
                 $dte_DireccionEmisor = $dte_Emisor->addChild('dte:DireccionEmisor');
                 $dte_DireccionEmisor->addChild('Direccion', $location_details->landmark);
                 $dte_DireccionEmisor->addChild('CodigoPostal', $location_details->zip_code);
-                $dte_DireccionEmisor->addChild('Municipio', $location_details->state);
-                $dte_DireccionEmisor->addChild('Departamento', $location_details->city);
+                $dte_DireccionEmisor->addChild('Municipio', $location_details->city);
+                $dte_DireccionEmisor->addChild('Departamento', $location_details->state);
                 $dte_DireccionEmisor->addChild('Pais', 'GT');
                 // SAT -> DTE -> DatosEmision -> Receptor
                 $dte_Receptor = $dte_DatosEmision->addChild('dte:Receptor');
