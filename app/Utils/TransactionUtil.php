@@ -998,7 +998,6 @@ class TransactionUtil extends Util
             
             $details = $this->_receiptDetailsSellLines($lines, $il,$business_details ); 
 
-            
             $Corr=1;
             $impuestoTotal=0;
             $impuesto=0;
@@ -1078,25 +1077,28 @@ class TransactionUtil extends Util
                 // SAT -> DTE -> DatosEmision -> Items -> Item  
                 //Detalle de producto <<<<---
             foreach ($details['lines'] as $line) {
+                //dd($line);
+                $bienoserv = ($line['enable_stock']=='1') ? 'B' : 'S' ; //Valida si es Bien o servicio
                 $num = (float)str_replace(',', '', $line['line_total']); //Se formatea string a texto cuando por la , y . laec052023
+                $Precio =(float)str_replace(',', '', ($line['quantity']*$line['unit_price_before_discount']));
                 $impuesto=$line['unit_price_inc_tax']*0.12;
                 $dte_Item = $dte_Items->addChild('dte:Item');
-                $dte_Item->addAttribute('BienOServicio', 'B');
+                $dte_Item->addAttribute('BienOServicio', $bienoserv);
                 $dte_Item->addAttribute('NumeroLinea', $Corr);
                 $cantidad=(float)str_replace(',', '', $line['quantity']); //Se formatea string a texto cuando por la , y . laec052023
                 $dte_Item->addChild('Cantidad', $cantidad);
-                $dte_Item->addChild('UnidadMedida','M');
+                $dte_Item->addChild('UnidadMedida',$line['units']);
                 $dte_Item->addChild('Descripcion', $line['name']);
-                $dte_Item->addChild('PrecioUnitario', $line['unit_price_inc_tax']);
-                $dte_Item->addChild('Precio', $num);
-                $dte_Item->addChild('Descuento',$line['line_discount'] );
+                $dte_Item->addChild('PrecioUnitario', $line['unit_price_before_discount']);
+                $dte_Item->addChild('Precio', $Precio);
+                $dte_Item->addChild('Descuento',$line['total_line_discount'] );
                 // SAT -> DTE -> DatosEmision -> Items -> Item -> Impuestos
                 $dte_Impuestos = $dte_Item->addChild('dte:Impuestos');
                 // SAT -> DTE -> DatosEmision -> Items -> Item -> Impuestos -> Impuesto
                 $dte_Impuesto = $dte_Impuestos->addChild('dte:Impuesto');
                 $dte_Impuesto->addChild('NombreCorto', 'IVA');
                 $dte_Impuesto->addChild('CodigoUnidadGravable', '1');
-                $montoGravable= number_format(($num-$line['line_discount'])/1.12,2, '.', ''); //dos decimales sin coma cuando pasa de mil
+                $montoGravable= number_format(($num)/1.12,2, '.', ''); //dos decimales sin coma cuando pasa de mil
                 $MontoImpuesto =$num-$montoGravable;
                 $dte_Impuesto->addChild('MontoGravable', $montoGravable);
                 $dte_Impuesto->addChild('MontoImpuesto', number_format($MontoImpuesto,2, '.', '')); //dos decimales sin coma cuando pasa de mil
@@ -1125,6 +1127,8 @@ class TransactionUtil extends Util
             // Convertir el XML en una cadena
             $xmlString = $xml->asXML();
 
+            $fileError3 = 'file_fel/XML_'.$transaction_id.'SNCERT.txt';
+            file_put_contents($fileError3, $xmlString);
             //Convierte XML a base64
             // $archivo= base64_encode($xmlString);
             $client = new Client(); /**************  Cambiar la forma de consumir a XML    ********** */
@@ -1214,6 +1218,86 @@ class TransactionUtil extends Util
             throw new PurchaseSellMismatch("Error al Certificar documento con SAT".$e);
         }
     }
+
+
+    /**
+     * Anular facturas FEL LAEC 2024.
+     *
+     * @param int $transaction_id
+     * @param array $business_details
+     *
+     * @return array
+     */
+    public function GenerateAnulationFEL($transaction_id, $business_details){
+
+        // Fecha Actual
+        $now = Carbon::now();
+        $Fecha = Carbon::now()->format('Y-m-d');
+
+        $fel = FelFacturas::where('id_transaction', $transaction_id)->first();
+        //Fel configurations
+        /*
+        $felconfigurations = FelConfiguration::where('business_id', $business_details->id)
+        ->where('location_id', $location_id)
+        ->first();
+        */
+        $xmlA = new \SimpleXMLElement('<?xml version="1.0" encoding="UTF-8" standalone="no"?><dte:GTAnulacionDocumento Version="0.1" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:dte="http://www.sat.gob.gt/dte/fel/0.1.0" xmlns:n1="http://www.altova.com/samplexml/other-namespace"><dte:SAT><dte:AnulacionDTE ID="DatosCertificados"><dte:DatosGenerales ID="DatosAnulacion" NumeroDocumentoAAnular="'.$fel->numeroautorizacion.'" NITEmisor="40392880" IDReceptor="'.$fel->nitreceptor.'" FechaEmisionDocumentoAnular="'.$fel->fechacertificacion.'T00:00:00-06:00" FechaHoraAnulacion="'.$Fecha.'T00:00:00-06:00" MotivoAnulacion="Anulacion"/></dte:AnulacionDTE></dte:SAT></dte:GTAnulacionDocumento>');
+        
+        //Paso XML a un string
+        $xmlStringA = $xmlA->asXML();
+        //$filea = 'file_fel/'.$transaction_id.'Anul.xml';
+        //file_put_contents($filea, $xmlA);
+        //Cliente para envío POST
+        $client = new Client();
+        //Mando archivo firmado para certificarse
+        $responceanul = $client->request('POST', 'https://certificador.feel.com.gt/fel/procesounificado/transaccion/v2/xml',
+        [
+            'headers' => [
+                'Content-Type' => 'application/xml',
+                'UsuarioFirma'=> '40392880PRO',
+                'UsuarioApi'=> '40392880PRO',
+                'LlaveApi'=> '2BB07EADC6857A6DA9012985C3B2C288',
+                //'LlaveFirma'=> '1f580f2213070c2642c0fbd7dda6d6e0', pruebas
+                'LlaveFirma' => '37091efa07c21fc0471f1a91e911821e',
+                'identificador'=> $fel->no_acceso
+            ],
+            'body' => $xmlStringA
+        ]
+        );
+        $estado=$responceanul->getStatusCode();
+
+        if($estado=='200'){
+            $resultadoanul=$responceanul->getBody()->getContents(); // recibe un json  
+            $resultado = json_decode($resultadoanul); //paso el json recibido a array
+            if ($resultado->resultado=='true') {
+                # Acción si es correcto
+                // Guardar el XML Certificado en bd
+                
+                $fel->fel_anulado=$resultado->xml_certificado;
+                $fel->estado='ANUL';
+                $fel->update();
+
+                return $fel->numeroautorizacion;
+                // Guardar el XML Certificado en un archivo
+                //$file3 = 'file'.$transaction_id.'Certificado.xml';
+                //file_put_contents($file3, $resultado->xml_certificado);
+               
+            }else{
+                # Accion si ocurre un error
+                $fileError3 = 'file_fel/ANUL'.$transaction_id.'Error.txt';
+                file_put_contents($fileError3, $resultadoanul);
+                throw new PurchaseSellMismatch("Error al Anular documento con SAT".$resultado->descripcion);
+            }
+
+  
+        
+        }else{
+            //validación si respuesta es incorrecta
+            throw new PurchaseSellMismatch("Error al Anular documento con SAT".$estado);
+        }
+    }
+    
+
     /**
      * Gives the receipt details in proper format.
      *
@@ -2247,6 +2331,7 @@ class TransactionUtil extends Util
             $unit = $line->product->unit;
             $brand = $line->product->brand;
             $cat = $line->product->category;
+            $enable_stock = $line->product->enable_stock;
             $tax_details = TaxRate::find($line->tax_id);
 
             $unit_name = ! empty($unit->short_name) ? $unit->short_name : '';
@@ -2335,7 +2420,8 @@ class TransactionUtil extends Util
                     $output_taxes['taxes'][$tax_name] += ($line->quantity * $line->item_tax);
                 }
             }
-
+            // B=1 S=0
+            $line_array['enable_stock'] = $enable_stock; // LAESTRADA  Regreso si maneja stock para agregarlo como Bien o Servicio
             $line_array['line_discount'] = method_exists($line, 'get_discount_amount') ? $this->num_f($line->get_discount_amount(), false, $business_details) : 0;
             $line_array['line_discount_uf'] = method_exists($line, 'get_discount_amount') ? $line->get_discount_amount() : 0;
 
