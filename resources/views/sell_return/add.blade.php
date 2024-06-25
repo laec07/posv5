@@ -103,7 +103,12 @@
 								<td>{{ $sell_line->formatted_qty }} {{$unit_name}}</td>
 
 								<td>
-									<input type="text" name="products[{{$loop->index}}][quantity]" value="{{@format_quantity($sell_line->quantity_returned)}}" class="form-control input-sm input_number return_qty input_quantity" data-rule-abs_digit="{{$check_decimal}}" data-msg-abs_digit="@lang('lang_v1.decimal_value_not_allowed')" data-rule-max-value="{{$sell_line->quantity}}" data-msg-max-value="@lang('validation.custom-messages.quantity_not_available', ['qty' => $sell_line->formatted_qty, 'unit' => $unit_name ])">
+									<input readonly type="text" name="products[{{$loop->index}}][quantity]" value="{{$sell_line->formatted_qty}}" 
+									class="form-control input-sm input_number return_qty input_quantity" 
+									data-rule-abs_digit="{{$check_decimal}}" 
+									data-msg-abs_digit="@lang('lang_v1.decimal_value_not_allowed')" 
+									data-rule-max-value="{{$sell_line->quantity}}" 
+									data-msg-max-value="@lang('validation.custom-messages.quantity_not_available', ['qty' => $sell_line->formatted_qty, 'unit' => $unit_name ])">
 									<input name="products[{{$loop->index}}][unit_price_inc_tax]" type="hidden" class="unit_price" value="{{@num_format($sell_line->unit_price_inc_tax)}}">
 									<input name="products[{{$loop->index}}][sell_line_id]" type="hidden" value="{{$sell_line->id}}">
 								</td>
@@ -124,13 +129,13 @@
 				<div class="col-sm-4">
 					<div class="form-group">
 						{!! Form::label('discount_type', __( 'purchase.discount_type' ) . ':') !!}
-						{!! Form::select('discount_type', [ '' => __('lang_v1.none'), 'fixed' => __( 'lang_v1.fixed' ), 'percentage' => __( 'lang_v1.percentage' )], $discount_type, ['class' => 'form-control']); !!}
+						{!! Form::select('discount_type', [ '' => __('lang_v1.none'), 'fixed' => __( 'lang_v1.fixed' ), 'percentage' => __( 'lang_v1.percentage' )], $discount_type, ['class' => 'form-control', 'readonly' => 'true']); !!}
 					</div>
 				</div>
 				<div class="col-sm-4">
 					<div class="form-group">
 						{!! Form::label('discount_amount', __( 'purchase.discount_amount' ) . ':') !!}
-						{!! Form::text('discount_amount', @num_format($discount_amount), ['class' => 'form-control input_number']); !!}
+						{!! Form::text('discount_amount', 100, ['class' => 'form-control input_number', 'readonly' => 'true']); !!}
 					</div>
 				</div>
 			</div>

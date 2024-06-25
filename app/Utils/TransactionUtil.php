@@ -1077,20 +1077,21 @@ class TransactionUtil extends Util
                 // SAT -> DTE -> DatosEmision -> Items -> Item  
                 //Detalle de producto <<<<---
             foreach ($details['lines'] as $line) {
-                //dd($line);
+                
                 $bienoserv = ($line['enable_stock']=='1') ? 'B' : 'S' ; //Valida si es Bien o servicio
-                $num = (float)str_replace(',', '', $line['line_total']); //Se formatea string a texto cuando por la , y . laec052023
-                $Precio =(float)str_replace(',', '', ($line['quantity']*$line['unit_price_before_discount']));
+                $num = (float)str_replace(',', '', $line['line_total_exc_tax_uf']); //Se formatea string a texto cuando por la , y . laec052023
                 $impuesto=$line['unit_price_inc_tax']*0.12;
                 $dte_Item = $dte_Items->addChild('dte:Item');
                 $dte_Item->addAttribute('BienOServicio', $bienoserv);
                 $dte_Item->addAttribute('NumeroLinea', $Corr);
                 $cantidad=(float)str_replace(',', '', $line['quantity']); //Se formatea string a texto cuando por la , y . laec052023
+                $prsunit =(float)str_replace(',', '', ($line['unit_price_before_discount']));
+                $precio= $cantidad * $prsunit;
                 $dte_Item->addChild('Cantidad', $cantidad);
                 $dte_Item->addChild('UnidadMedida',$line['units']);
                 $dte_Item->addChild('Descripcion', $line['name']);
                 $dte_Item->addChild('PrecioUnitario', $line['unit_price_before_discount']);
-                $dte_Item->addChild('Precio', $Precio);
+                $dte_Item->addChild('Precio', $precio);
                 $dte_Item->addChild('Descuento',$line['total_line_discount'] );
                 // SAT -> DTE -> DatosEmision -> Items -> Item -> Impuestos
                 $dte_Impuestos = $dte_Item->addChild('dte:Impuestos');
@@ -1126,9 +1127,11 @@ class TransactionUtil extends Util
     
             // Convertir el XML en una cadena
             $xmlString = $xml->asXML();
+            
+            // Generar y guardad archivo FEl para testear errores
+           // $fileError3 = 'file_fel/XML_'.$transaction_id.'SNCERT.txt';
+           // file_put_contents($fileError3, $xmlString);
 
-            $fileError3 = 'file_fel/XML_'.$transaction_id.'SNCERT.txt';
-            file_put_contents($fileError3, $xmlString);
             //Convierte XML a base64
             // $archivo= base64_encode($xmlString);
             $client = new Client(); /**************  Cambiar la forma de consumir a XML    ********** */
@@ -1228,74 +1231,71 @@ class TransactionUtil extends Util
      *
      * @return array
      */
-    public function GenerateAnulationFEL($transaction_id, $business_details){
+    public function GenerateAnulationFEL($transaction_id, $id_business, $location_id)
+{
+    // Fecha Actual
+    $now = \Carbon::now();
+    $Fecha = $now->format('Y-m-d');
 
-        // Fecha Actual
-        $now = Carbon::now();
-        $Fecha = Carbon::now()->format('Y-m-d');
-
-        $fel = FelFacturas::where('id_transaction', $transaction_id)->first();
-        //Fel configurations
-        /*
-        $felconfigurations = FelConfiguration::where('business_id', $business_details->id)
+    // Obtener datos de la factura y configuraciones FEL
+    $fel = FelFacturas::where('id_transaction', $transaction_id)->firstOrFail();
+    $felconfigurations = FelConfiguration::where('business_id', $id_business)
         ->where('location_id', $location_id)
-        ->first();
-        */
-        $xmlA = new \SimpleXMLElement('<?xml version="1.0" encoding="UTF-8" standalone="no"?><dte:GTAnulacionDocumento Version="0.1" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:dte="http://www.sat.gob.gt/dte/fel/0.1.0" xmlns:n1="http://www.altova.com/samplexml/other-namespace"><dte:SAT><dte:AnulacionDTE ID="DatosCertificados"><dte:DatosGenerales ID="DatosAnulacion" NumeroDocumentoAAnular="'.$fel->numeroautorizacion.'" NITEmisor="40392880" IDReceptor="'.$fel->nitreceptor.'" FechaEmisionDocumentoAnular="'.$fel->fechacertificacion.'T00:00:00-06:00" FechaHoraAnulacion="'.$Fecha.'T00:00:00-06:00" MotivoAnulacion="Anulacion"/></dte:AnulacionDTE></dte:SAT></dte:GTAnulacionDocumento>');
-        
-        //Paso XML a un string
-        $xmlStringA = $xmlA->asXML();
-        //$filea = 'file_fel/'.$transaction_id.'Anul.xml';
-        //file_put_contents($filea, $xmlA);
-        //Cliente para envío POST
-        $client = new Client();
-        //Mando archivo firmado para certificarse
-        $responceanul = $client->request('POST', 'https://certificador.feel.com.gt/fel/procesounificado/transaccion/v2/xml',
-        [
-            'headers' => [
-                'Content-Type' => 'application/xml',
-                'UsuarioFirma'=> '40392880PRO',
-                'UsuarioApi'=> '40392880PRO',
-                'LlaveApi'=> '2BB07EADC6857A6DA9012985C3B2C288',
-                //'LlaveFirma'=> '1f580f2213070c2642c0fbd7dda6d6e0', pruebas
-                'LlaveFirma' => '37091efa07c21fc0471f1a91e911821e',
-                'identificador'=> $fel->no_acceso
-            ],
-            'body' => $xmlStringA
-        ]
-        );
-        $estado=$responceanul->getStatusCode();
+        ->firstOrFail();
 
-        if($estado=='200'){
-            $resultadoanul=$responceanul->getBody()->getContents(); // recibe un json  
-            $resultado = json_decode($resultadoanul); //paso el json recibido a array
-            if ($resultado->resultado=='true') {
-                # Acción si es correcto
-                // Guardar el XML Certificado en bd
-                
-                $fel->fel_anulado=$resultado->xml_certificado;
-                $fel->estado='ANUL';
+    // Crear el XML de anulación
+    $xmlA = new \SimpleXMLElement('<?xml version="1.0" encoding="UTF-8" standalone="no"?><dte:GTAnulacionDocumento Version="0.1" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:dte="http://www.sat.gob.gt/dte/fel/0.1.0" xmlns:n1="http://www.altova.com/samplexml/other-namespace"><dte:SAT><dte:AnulacionDTE ID="DatosCertificados"><dte:DatosGenerales ID="DatosAnulacion" NumeroDocumentoAAnular="' . $fel->numeroautorizacion . '" NITEmisor="' . $felconfigurations->nit_emisor . '" IDReceptor="' . $fel->nitreceptor . '" FechaEmisionDocumentoAnular="' . $fel->fechacertificacion . 'T00:00:00-06:00" FechaHoraAnulacion="' . $Fecha . 'T00:00:00-06:00" MotivoAnulacion="Anulacion"/></dte:AnulacionDTE></dte:SAT></dte:GTAnulacionDocumento>');
+
+    // Convertir XML a cadena
+    $xmlStringA = $xmlA->asXML();
+
+    // Cliente HTTP para enviar la solicitud POST
+    $client = new \GuzzleHttp\Client(['verify' => false]);
+    $resultado = null;
+
+    try {
+        $response = $client->post(
+            $felconfigurations->link_certificar,
+            [
+                'headers' => [
+                    'Content-Type' => $felconfigurations->Content_Type,
+                    'UsuarioFirma' => $felconfigurations->usuario_firma,
+                    'LlaveFirma' => $felconfigurations->llave_firma,
+                    'UsuarioApi' => $felconfigurations->usuario_api,
+                    'LlaveApi' => $felconfigurations->llave_api,
+                    'identificador' => $fel->no_acceso
+                ],
+                'body' => $xmlStringA
+            ]
+        );
+
+        $estado = $response->getStatusCode();
+        $resultadoanul = $response->getBody()->getContents(); // recibe un json  
+        $resultado = json_decode($resultadoanul); // Convertir el json recibido a objeto
+
+        if ($estado == 200) {
+            if ($resultado->resultado == 'true') {
+                // Guardar el XML Certificado en la base de datos
+                $fel->fel_anulado = $resultado->xml_certificado;
+                $fel->estado = 'ANUL';
                 $fel->update();
 
                 return $fel->numeroautorizacion;
-                // Guardar el XML Certificado en un archivo
-                //$file3 = 'file'.$transaction_id.'Certificado.xml';
-                //file_put_contents($file3, $resultado->xml_certificado);
-               
-            }else{
-                # Accion si ocurre un error
-                $fileError3 = 'file_fel/ANUL'.$transaction_id.'Error.txt';
-                file_put_contents($fileError3, $resultadoanul);
-                throw new PurchaseSellMismatch("Error al Anular documento con SAT".$resultado->descripcion);
+            } else {
+                // Guardar el error en un archivo
+                $fileError = 'file_fel/ANUL' . $transaction_id . 'Error.txt';
+                file_put_contents($fileError, $resultadoanul);
+                throw new PurchaseSellMismatch("Error al anular documento con SAT: " . $resultado->descripcion);
             }
-
-  
-        
-        }else{
-            //validación si respuesta es incorrecta
-            throw new PurchaseSellMismatch("Error al Anular documento con SAT".$estado);
+        } else {
+            throw new PurchaseSellMismatch("Error al anular documento con SAT: " . $estado);
         }
+    } catch (\Throwable $th) {
+        $mensajeError = $resultado ? $resultado->mensaje_error : $th->getMessage();
+        throw new PurchaseSellMismatch("Excepción al anular documento con SAT: " . $mensajeError);
     }
+}
+
     
 
     /**
