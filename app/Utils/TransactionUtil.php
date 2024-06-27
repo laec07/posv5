@@ -979,6 +979,10 @@ class TransactionUtil extends Util
             $felconfigurations = FelConfiguration::where('business_id', $business_details->id)
             ->where('location_id', $location_id)
             ->first();
+            
+            //validar nombre individual o empresa
+            $nombre_receptor =(empty($customer->name)) ? $nombre_receptor = $customer->supplier_business_name :$nombre_receptor=$customer->name;
+
             //validar direccion vacía
             if(empty($customer->city)){
                 $customer->city='GUATEMALA';
@@ -1057,7 +1061,7 @@ class TransactionUtil extends Util
                     $dte_Receptor->addAttribute('NombreReceptor', 'CONSUMIDOR FINAL');
                     $dte_Receptor->addAttribute('TipoEspecial', 'CUI'); 
                 }else {
-                    $dte_Receptor->addAttribute('NombreReceptor', $customer->name);
+                    $dte_Receptor->addAttribute('NombreReceptor', $nombre_receptor);
                 }
                 // SAT -> DTE -> DatosEmision -> Receptor -> DireccionReceptor
                 $dte_DireccionReceptor = $dte_Receptor->addChild('dte:DireccionReceptor');
@@ -1077,7 +1081,6 @@ class TransactionUtil extends Util
                 // SAT -> DTE -> DatosEmision -> Items -> Item  
                 //Detalle de producto <<<<---
             foreach ($details['lines'] as $line) {
-                
                 $bienoserv = ($line['enable_stock']=='1') ? 'B' : 'S' ; //Valida si es Bien o servicio
                 $num = (float)str_replace(',', '', $line['line_total_exc_tax_uf']); //Se formatea string a texto cuando por la , y . laec052023
                 $impuesto=$line['unit_price_inc_tax']*0.12;
@@ -1086,13 +1089,14 @@ class TransactionUtil extends Util
                 $dte_Item->addAttribute('NumeroLinea', $Corr);
                 $cantidad=(float)str_replace(',', '', $line['quantity']); //Se formatea string a texto cuando por la , y . laec052023
                 $prsunit =(float)str_replace(',', '', ($line['unit_price_before_discount']));
+                $totallinediscount =(float)str_replace(',', '', ($line['total_line_discount']));
                 $precio= $cantidad * $prsunit;
                 $dte_Item->addChild('Cantidad', $cantidad);
                 $dte_Item->addChild('UnidadMedida',$line['units']);
                 $dte_Item->addChild('Descripcion', $line['name']);
-                $dte_Item->addChild('PrecioUnitario', $line['unit_price_before_discount']);
+                $dte_Item->addChild('PrecioUnitario', $prsunit);
                 $dte_Item->addChild('Precio', $precio);
-                $dte_Item->addChild('Descuento',$line['total_line_discount'] );
+                $dte_Item->addChild('Descuento',$totallinediscount);
                 // SAT -> DTE -> DatosEmision -> Items -> Item -> Impuestos
                 $dte_Impuestos = $dte_Item->addChild('dte:Impuestos');
                 // SAT -> DTE -> DatosEmision -> Items -> Item -> Impuestos -> Impuesto
