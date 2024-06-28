@@ -42,7 +42,7 @@
       @lang('business.business'):
       <address>
         <strong>{{ $purchase->business->name }}</strong>
-        {{ $purchase->location->name }}
+       <!-- {{ $purchase->location->name }} LAESTRADA Cambios solicitados por Erick    --> 
         @if(!empty($purchase->location->landmark))
           <br>{{$purchase->location->landmark}}
         @endif
@@ -147,12 +147,12 @@
             <tr class="bg-green">
               <th>#</th>
               <th>@lang('product.product_name')</th>
-              <th>@lang('product.sku')</th>
+             <!-- <th>@lang('product.sku')</th> -->
               @if($purchase->type == 'purchase_order')
                 <th class="text-right">@lang( 'lang_v1.quantity_remaining' )</th>
               @endif
-              <th class="text-right">@if($purchase->type == 'purchase_order') @lang('lang_v1.order_quantity') @else @lang('purchase.purchase_quantity') @endif</th>
-              <th class="text-right">@lang( 'lang_v1.unit_cost_before_discount' )</th>
+              <th class="text-left">@if($purchase->type == 'purchase_order') @lang('lang_v1.order_quantity') @else @lang('product.quantity') @endif</th> <!-- LAESTRADA -->
+            <!--  <th class="text-right">@lang( 'lang_v1.unit_cost_before_discount' )</th> -->
               @if(!session('business.enable_lot_number'))
               <th class="text-right">@lang( 'lang_v1.discount_percent' )</th>
               
@@ -160,10 +160,10 @@
               <th class="no-print text-right">@lang('purchase.subtotal_before_tax')</th>
               <th class="text-right">@lang('sale.tax')</th>
               @endif
-              <th class="text-right">@lang('purchase.unit_cost_after_tax')</th>
+              <th class="text-left">@lang('product.unit_coste')</th> <!-- LAESTRADA -->
               @if($purchase->type != 'purchase_order')
               @if(session('business.enable_lot_number'))
-                <th>@lang('lang_v1.lot_number')</th>
+                <th>@lang('product.lot_number')</th> <!-- LAESTRADA -->
               @endif
               @if(session('business.enable_product_expiry'))
                 <th>@lang('product.mfg_date')</th>
@@ -186,13 +186,13 @@
                   - {{ $purchase_line->variations->name}}
                  @endif
               </td>
-              <td>
+          <!--    <td>
                  @if( $purchase_line->product->type == 'variable')
                   {{ $purchase_line->variations->sub_sku}}
                   @else
                   {{ $purchase_line->product->sku }}
                  @endif
-              </td>
+              </td> -->
               @if($purchase->type == 'purchase_order')
               <td>
                 <span class="display_currency" data-is_quantity="true" data-currency_symbol="false">{{ $purchase_line->quantity - $purchase_line->po_quantity_purchased }}</span> @if(!empty($purchase_line->sub_unit)) {{$purchase_line->sub_unit->short_name}} @else {{$purchase_line->product->unit->short_name}} @endif
@@ -206,7 +206,7 @@
                 @endif
 
               </td>
-              <td class="text-right"><span class="display_currency" data-currency_symbol="true">{{ $purchase_line->pp_without_discount}}</span></td>
+             <!-- <td class="text-right"><span class="display_currency" data-currency_symbol="true">{{ $purchase_line->pp_without_discount}}</span></td> -->
               @if(!session('business.enable_lot_number'))
               <td class="text-right"><span class="display_currency">{{ $purchase_line->discount_percent}}</span> %</td>
               
@@ -214,7 +214,7 @@
               <td class="no-print text-right"><span class="display_currency" data-currency_symbol="true">{{ $purchase_line->quantity * $purchase_line->purchase_price }}</span></td>
               <td class="text-right"><span class="display_currency" data-currency_symbol="true">{{ $purchase_line->item_tax }} </span> <br/><small>@if(!empty($taxes[$purchase_line->tax_id])) ( {{ $taxes[$purchase_line->tax_id]}} ) </small>@endif</td>
               @endif
-              <td class="text-right"><span class="display_currency" data-currency_symbol="true">{{ $purchase_line->purchase_price_inc_tax }}</span></td>
+              <td class="text-left"><span class="display_currency" data-currency_symbol="true">{{ $purchase_line->purchase_price_inc_tax }}</span></td>
               @if($purchase->type != 'purchase_order')
               @if(session('business.enable_lot_number'))
                 <td>{{$purchase_line->lot_number}}</td>
@@ -299,6 +299,8 @@
             <td></td>
             <td><span class="display_currency pull-right">{{ $total_before_tax }}</span></td>
           </tr> -->
+          <!-- LAESTRADA Cambios diseños solicitado por Erick SOLI -->
+          <!--
           <tr>
             <th>@lang('purchase.net_total_amount'): </th>
             <td></td>
@@ -369,7 +371,7 @@
               <td><b>(+)</b></td>
               <td><span class="display_currency pull-right" >{{ $purchase->additional_expense_value_4 }}</span></td>
             </tr>
-          @endif
+          @endif -->
           <tr>
             <th>@lang('purchase.purchase_total'):</th>
             <td></td>

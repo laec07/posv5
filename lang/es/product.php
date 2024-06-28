@@ -14,7 +14,7 @@
      'tax' => 'Impuesto',
      'sku' => 'SKU',
      'alert_quantity' => 'Cantidad para alerta', /* modified */
-     'product_name' => 'Nombre del producto',
+     'product_name' => 'Producto', /* modified laestrada */
      'auto_generate' => 'Generar automáticamente',
      'manage_stock' => 'Administrar Stock?',
      'enable_stock_help' => 'Habilitar la gestión de stock a nivel de producto', /* modified */
@@ -47,4 +47,7 @@
      'import_products' => 'Importar productos',
      'file_to_import' => 'Archivo para importar',
      'file_imported_successfully' => 'Archivo importado con éxito',
+     'quantity' => 'Cantidad', /* modified laestrada */
+     'unit_coste' => 'Precio', /* modified laestrada */
+     'lot_number' => 'Lote', /* modified laestrada */
  ];

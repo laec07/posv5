@@ -51,12 +51,13 @@
 
 	<div class="col-md-6 invoice-col width-50">
 
-		<div class="text-right font-23">
+		<div class="text-right font-14"> <!-- LAESTRADA Cambios diseño sol Erick -->
 			@if(!empty($receipt_details->invoice_no_prefix))
-				<span class="pull-left">{!! $receipt_details->invoice_no_prefix !!}</span>
-			@endif
-
+				<span class="pull-left">{!! $receipt_details->invoice_no_prefix !!} {{$receipt_details->invoice_no}}</span><br>
+			@else
 			{{$receipt_details->invoice_no}}
+			@endif
+			
 		</div>
 
 		<!-- Total Due-->
@@ -89,12 +90,12 @@
 		@endif
 		<!-- Date-->
 		@if(!empty($receipt_details->date_label))
-			<div class="text-right font-23 ">
-				<span class="pull-left">
-					{{$receipt_details->date_label}}
+			<div class="text-right font-14 ">
+				<span class="pull-left"> <!-- LAESTRADA Cambios diseño sol Erick -->
+					{{$receipt_details->date_label}} {{$receipt_details->invoice_date}}
 				</span>
-
-				{{$receipt_details->invoice_date}}
+				<br>
+				
 			</div>
 		@endif
 
@@ -151,9 +152,12 @@
 			@endif
 
 			<!-- customer info -->
-			@if(!empty($receipt_details->customer_info))
-				{!! $receipt_details->customer_info !!}
+			 <span  class=" font-23 "> <!-- LAESTRADA Cambios diseño sol Erick -->
+			 @if(!empty($receipt_details->customer_info))
+				{!! $receipt_details->customer_info !!} 
 			@endif
+			 </span>
+
 			@if(!empty($receipt_details->client_id_label))
 				<br/>
 				<strong>{{ $receipt_details->client_id_label }}</strong> {{ $receipt_details->client_id }}
