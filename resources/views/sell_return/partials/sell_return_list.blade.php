@@ -4,7 +4,7 @@
             <tr>
                 <th>@lang('messages.date')</th>
                 <th>@lang('sale.invoice_no')</th>
-                <th>@lang('lang_v1.parent_sale')</th>
+                <th>Envio Interno</th>
                 <th>@lang('sale.customer_name')</th>
                 <th>@lang('sale.location')</th>
                 <th>@lang('purchase.payment_status')</th>

@@ -949,7 +949,40 @@ class TransactionUtil extends Util
 
         return $payment_lines;
     }
-/**
+
+    /**
+     * Obtiene configuración Facturas Fel para bussines & location
+     * LAESTRADA
+     * @param business_id
+     * @param location_id
+     * @return array
+     */
+    public function GetFelConfiguration($business_id,$location_id){
+
+        //Fel configurations
+        $felconfigurations = FelConfiguration::where('business_id', $business_id)
+        ->where('location_id', $location_id)
+        ->first();
+
+        return $felconfigurations;
+    }
+
+    /**
+     * Obtiene configuración Facturas Fel para bussines & location
+     * LAESTRADA
+     * @param business_id
+     * @param location_id
+     * @return array
+     */
+    public function GetFelinvoice($transacion_id){
+
+        //Fel configurations
+        $felinvoice = FelFacturas::where('id_transaction', $transacion_id)
+        ->first();
+
+        return $felinvoice;
+    }
+    /**
      * Genera XML para INFILE LAEC 31032023.
      *
      * @param int $transaction_id
@@ -1319,7 +1352,7 @@ class TransactionUtil extends Util
 
         $transaction = Transaction::find($transaction_id);
         $transaction_type = $transaction->type;
-
+        
         $output = [
             'header_text' => isset($il->header_text) ? $il->header_text : '',
             'business_name' => ($il->show_business_name == 1) ? $business_details->name : '',
@@ -1343,7 +1376,7 @@ class TransactionUtil extends Util
             }
             $output['display_name'] .= $output['location_name'];
         }
-
+        
         //Codes
         if (! empty($business_details->code_label_1) && ! empty($business_details->code_1)) {
             $output['code_label_1'] = $business_details->code_label_1;
@@ -1363,7 +1396,7 @@ class TransactionUtil extends Util
 
         //Logo
         $output['logo'] = $il->show_logo != 0 && ! empty($il->logo) && file_exists(public_path('uploads/invoice_logos/'.$il->logo)) ? asset('uploads/invoice_logos/'.$il->logo) : false;
-
+        
         //Address
         $output['address'] = '';
         $temp = [];
@@ -1464,7 +1497,7 @@ class TransactionUtil extends Util
                     $output['customer_info'] .= ', '.$customer->landline;
                 }*/
             }
-
+            
             $output['customer_tax_number'] = $customer->tax_number;
             $output['customer_tax_label'] = ! empty($il->client_tax_label) ? $il->client_tax_label : '';
 
@@ -1502,7 +1535,7 @@ class TransactionUtil extends Util
             if (! empty($temp)) {
                 $output['customer_custom_fields'] .= implode('<br>', $temp);
             }
-
+            
             //To be used in pdfs
             $customer_address = [];
             if (! empty($customer->supplier_business_name)) {
@@ -1569,12 +1602,12 @@ class TransactionUtil extends Util
             $output['commission_agent_label'] = ! empty($il->commission_agent_label) ? $il->commission_agent_label : '';
             $output['commission_agent'] = ! empty($transaction->sale_commission_agent->user_full_name) ? $transaction->sale_commission_agent->user_full_name : '';
         }
-
+        
         //Invoice info
         $output['invoice_no'] = $transaction->invoice_no;
         $output['invoice_no_prefix'] = $il->invoice_no_prefix;
         $output['shipping_address'] = ! empty($transaction->shipping_address()) ? $transaction->shipping_address() : $transaction->shipping_address;
-
+        
         //Heading & invoice label, when quotation use the quotation heading.
         if ($transaction_type == 'sell_return') {
             $output['invoice_heading'] = $il->cn_heading;
@@ -1582,6 +1615,7 @@ class TransactionUtil extends Util
 
             //Parent sell details(return_parent_id)
             $output['parent_invoice_no'] = Transaction::find($transaction->return_parent_id)->invoice_no;
+            
             $output['parent_invoice_no_prefix'] = $il->invoice_no_prefix;
         } elseif ($transaction->status == 'draft' && $transaction->sub_status == 'proforma' && ! empty($il->common_settings['proforma_heading'])) {
             $output['invoice_heading'] = $il->common_settings['proforma_heading'];
@@ -1599,7 +1633,7 @@ class TransactionUtil extends Util
                 $output['invoice_heading'] .= ' '.$il->invoice_heading_not_paid;
             }
         }
-
+        
         $output['date_label'] = $il->date_label;
         if (blank($il->date_time_format)) {
             $output['invoice_date'] = $this->format_date($transaction->transaction_date, true, $business_details);
@@ -1736,7 +1770,7 @@ class TransactionUtil extends Util
                 }
             }
         }
-
+        
         //show cat code
         $output['show_cat_code'] = $il->show_cat_code;
         $output['cat_code_label'] = $il->cat_code_label;
@@ -5146,7 +5180,7 @@ class TransactionUtil extends Util
                 'success' => false,
                 'msg' => __('lang_v1.return_exist'),
             ];
-
+            dd($output);
             return $output;
         }
 
@@ -6370,7 +6404,8 @@ class TransactionUtil extends Util
             $sell_return_data['type'] = 'sell_return';
             $sell_return_data['status'] = 'final';
             $sell_return_data['created_by'] = $user_id;
-            $sell_return_data['return_parent_id'] = $sell->id;
+            $sell_return_data['invoice_no'] = $sell->invoice_no; //LAESTRADA Para dejar registro Número factura
+            $sell_return_data['return_parent_id'] = $sell->id; 
             $sell_return = Transaction::create($sell_return_data);
 
             $this->activityLog($sell_return, 'added');
@@ -6391,6 +6426,7 @@ class TransactionUtil extends Util
                 $this->updateCustomerRewardPoints($sell->contact_id, $new_reward_point, $sell->rp_earned);
 
                 $sell->rp_earned = $new_reward_point;
+                $sell->status = 'cancel';
                 $sell->save();
             }
         }
