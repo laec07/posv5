@@ -143,36 +143,42 @@
 			}
 		@endphp
 		@if(!empty($product->lot_numbers) && empty($is_sales_order))
-			<select class="form-control lot_number input-sm" name="products[{{$row_count}}][lot_no_line_id]" @if(!empty($product->transaction_sell_lines_id)) disabled @endif>
-				<option value="">@lang('lang_v1.lot_n_expiry')</option>
-				@foreach($product->lot_numbers as $lot_number)
-					@php
-						$selected = "";
-						if($lot_number->purchase_line_id == $lot_no_line_id){
-							$selected = "selected";
+		<select class="form-control lot_number input-sm" name="products[{{$row_count}}][lot_no_line_id]" @if(!empty($product->transaction_sell_lines_id)) disabled @endif>
+			<option value="">@lang('lang_v1.lot_n_expiry')</option>
+			@foreach($product->lot_numbers as $lot_number)
+				@php
+					$selected = "";
+					if($lot_number->purchase_line_id == $lot_no_line_id){
+						$selected = "selected";
 
-							$max_qty_rule = $lot_number->qty_available;
-							$max_qty_msg = __('lang_v1.quantity_error_msg_in_lot', ['qty'=> $lot_number->qty_formated, 'unit' => $product->unit  ]);
+						$max_qty_rule = $lot_number->qty_available;
+						$max_qty_msg = __('lang_v1.quantity_error_msg_in_lot', ['qty'=> $lot_number->qty_formated, 'unit' => $product->unit  ]);
+					}
+
+					$expiry_text = '';
+					if($exp_enabled == 1 && !empty($lot_number->exp_date)){
+						if( \Carbon::now()->gt(\Carbon::createFromFormat('Y-m-d', $lot_number->exp_date)) ){
+							$expiry_text = '(' . __('report.expired') . ')';
 						}
+					}
 
-						$expiry_text = '';
-						if($exp_enabled == 1 && !empty($lot_number->exp_date)){
-							if( \Carbon::now()->gt(\Carbon::createFromFormat('Y-m-d', $lot_number->exp_date)) ){
-								$expiry_text = '(' . __('report.expired') . ')';
-							}
-						}
+					//preselected lot number if product searched by lot number
+					if(!empty($purchase_line_id) && $purchase_line_id == $lot_number->purchase_line_id) {
+						$selected = "selected";
 
-						//preselected lot number if product searched by lot number
-						if(!empty($purchase_line_id) && $purchase_line_id == $lot_number->purchase_line_id) {
-							$selected = "selected";
+						$max_qty_rule = $lot_number->qty_available;
+						$max_qty_msg = __('lang_v1.quantity_error_msg_in_lot', ['qty'=> $lot_number->qty_formated, 'unit' => $product->unit  ]);
+					}
+				@endphp
+				<option value="{{$lot_number->purchase_line_id}}" data-qty_available="{{$lot_number->qty_available}}" data-msg-max="@lang('lang_v1.quantity_error_msg_in_lot', ['qty'=> $lot_number->qty_formated, 'unit' => $product->unit  ])" {{$selected}}>
+				@if(!empty($lot_number->lot_number) && $lot_enabled == 1){{$lot_number->lot_number}} ({{number_format($lot_number->qty_available, 2)}})@endif 
+					@if($lot_enabled == 1 && $exp_enabled == 1) - @endif 
+					@if($exp_enabled == 1 && !empty($lot_number->exp_date)) @lang('product.exp_date'): {{@format_date($lot_number->exp_date)}} @endif 
+					{{$expiry_text}}
+				</option>
+			@endforeach
+		</select>
 
-							$max_qty_rule = $lot_number->qty_available;
-							$max_qty_msg = __('lang_v1.quantity_error_msg_in_lot', ['qty'=> $lot_number->qty_formated, 'unit' => $product->unit  ]);
-						}
-					@endphp
-					<option value="{{$lot_number->purchase_line_id}}" data-qty_available="{{$lot_number->qty_available}}" data-msg-max="@lang('lang_v1.quantity_error_msg_in_lot', ['qty'=> $lot_number->qty_formated, 'unit' => $product->unit  ])" {{$selected}}>@if(!empty($lot_number->lot_number) && $lot_enabled == 1){{$lot_number->lot_number}} @endif @if($lot_enabled == 1 && $exp_enabled == 1) - @endif @if($exp_enabled == 1 && !empty($lot_number->exp_date)) @lang('product.exp_date'): {{@format_date($lot_number->exp_date)}} @endif {{$expiry_text}}</option>
-				@endforeach
-			</select>
 		@endif
 	@endif
 	@if(!empty($is_direct_sell))
