@@ -17,7 +17,7 @@
 
         <div class="form-group col-sm-12">
           {!! Form::label('short_name', __( 'unit.short_name' ) . ':*') !!}
-            {!! Form::text('short_name', null, ['class' => 'form-control', 'placeholder' => __( 'unit.short_name' ), 'required']); !!}
+            {!! Form::text('short_name', null, ['class' => 'form-control', 'placeholder' => __( 'unit.short_name' ), 'required', 'maxlength' => 3]); !!} <!-- laestrada LIMITA A 3  CARACTER -->
         </div>
 
         <div class="form-group col-sm-12">
