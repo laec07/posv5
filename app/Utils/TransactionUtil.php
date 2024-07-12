@@ -1207,6 +1207,8 @@ class TransactionUtil extends Util
             if($estado=='200'){
                 $resultadoj=$responsecert->getBody()->getContents(); // recibe un json  
                 $resultado = json_decode($resultadoj); //paso el json recibido a array
+                // Convertir el JSON a base64
+                $json_base64 = base64_encode($resultadoj);
                 if ($resultado->resultado=='true') {
                     # Acción si es correcto
                     // Guardar el XML Certificado en bd
@@ -1224,6 +1226,7 @@ class TransactionUtil extends Util
                         'seriefel' => $resultado->serie,
                         'fechacertificacion' => $resultado->fecha,
                         'estado' =>'CERT',
+                        'json' => $json_base64,
                     ]);
                     //obtenemos el ID del registro para actualizarlo
                     $felfac = FelFacturas::find($felfac->id);
@@ -1239,6 +1242,7 @@ class TransactionUtil extends Util
                         'montogravable' => $montoGravable,
                         'impuestototal' => $impuestoTotal,
                         'estado' =>'ERROR',
+                        'json' => $json_base64,
                         //'fel_certificado' =>
                     ]);
                     # Accion si ocurre un error

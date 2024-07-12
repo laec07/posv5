@@ -1346,7 +1346,7 @@ return [
     'disable_quotation' => 'Desactivar Cotización',
     'disable_card' => 'Desactivar Tarjeta',
     'transaction' => 'Transacción',
-    'statement' => 'Declaración',
+    'statement' => 'Estado de cuenta',
     'current' => 'Actual',
     '1_30_days_past_due' => '1-30 dias',
     '30_60_days_past_due' => '30-60 dias',
