@@ -511,22 +511,63 @@ class ProductionController extends Controller
         if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.access_production')) {
             abort(403, 'Unauthorized action.');
         }
-/*
-        $results = PurchaseLine::where('purchase_lines.lot_number', $lot_num)
-        ->join('transactions as t', 't.mfg_parent_production_purchase_id', '=', 'purchase_lines.transaction_id')
-        ->join('transaction_sell_lines as tsl', 't.id', '=', 'tsl.transaction_id')
-        ->join('products as p', 'p.id', '=', 'tsl.product_id')
-        ->join('purchase_lines as pl2', 'pl2.id', '=', 'tsl.lot_no_line_id')
-        ->join('units as u', 'u.id', '=', 'p.unit_id')
-        ->where('t.business_id', $business_id)
-        ->select(
-            'p.name as product_name',
-            'tsl.quantity',
-            'pl2.lot_number as lot_number',
-            'u.actual_name as unit_name'
-        )
-        ->get();*/
 
+
+        $firstQueryResult = Product::select('tsl2.variation_id')
+        ->join('variations AS v', 'products.id', '=', 'v.product_id')
+        ->join('purchase_lines AS pl', 'v.id', '=', 'pl.variation_id')
+        ->join('transactions AS t', 'pl.transaction_id', '=', 't.id')
+        ->join('transactions AS t2', 't2.mfg_parent_production_purchase_id', '=', 'pl.transaction_id')
+        ->join('transaction_sell_lines AS tsl2', 'tsl2.transaction_id', '=', 't2.id')
+        ->where('products.business_id', $business_id)
+        ->where('pl.lot_number', $lot_num)
+        ->where('products.id', $id_product)
+        ->groupBy('tsl2.variation_id')
+        ->first();
+    
+        $variationId = $firstQueryResult->variation_id;
+    
+
+        
+        $results = Product::select([
+                't.id AS id_trans',
+                'tsl2.variation_id',
+                'pl2.lot_number',
+                'products.name AS product_name',
+                'products.id AS product_id',
+                'units.short_name AS unit',
+                't.type AS type',
+                DB::raw('
+                    COALESCE((
+                        SELECT SUM(quantity - quantity_returned)
+                        FROM purchase_lines AS pls
+                        WHERE pls.variation_id = v.id
+                          AND t.id = pls.transaction_id
+                          AND pls.lot_number = pl.lot_number
+                    ), 0) - COALESCE(SUM(tspl.quantity - tspl.qty_returned), 0) AS quantity
+                ')
+            ])
+            ->leftJoin('units', 'products.unit_id', '=', 'units.id')
+            ->join('variations AS v', 'products.id', '=', 'v.product_id')
+            ->join('purchase_lines AS pl', 'v.id', '=', 'pl.variation_id')
+            ->leftJoin('transaction_sell_lines_purchase_lines AS tspl', 'pl.id', '=', 'tspl.purchase_line_id')
+            ->join('transactions AS t', 'pl.transaction_id', '=', 't.id')
+            ->join('transactions AS t2', 't2.mfg_parent_production_purchase_id', '=', 'pl.transaction_id')
+            ->join('transaction_sell_lines AS tsl2', 'tsl2.transaction_id', '=', 't2.id')
+            ->join('purchase_lines AS pl2', 'tsl2.lot_no_line_id', '=', 'pl2.id')
+            ->where('products.business_id', $business_id)
+            ->where('pl.lot_number', $lot_num)
+            ->where('products.id', 319)
+            ->where('tsl2.variation_id', $variationId) // Utiliza el valor obtenido de la primera consulta
+            ->groupBy('t.id', 'v.id', 'pl2.lot_number', 'products.name', 'products.id', 'units.short_name', 't.type')
+            ->havingRaw('SUM(pl.quantity) > 0 AND quantity > 0')
+            ->orderBy('pl.lot_number')
+            ->get();
+        
+
+        
+        
+/*
         $results = Product::where('products.business_id', $business_id)
             ->leftjoin('units', 'products.unit_id', '=', 'units.id')
             ->join('variations as v', 'products.id', '=', 'v.product_id')
@@ -557,7 +598,7 @@ class ProductionController extends Controller
             ->orderBy('pl.lot_number')
             ->havingRaw('quantity > 0') // Muestra solo lotes con stock disponible LAESTRADA
             ->get();
-
+*/
 
             return view('manufacturing::production.showmodal')->with(compact('results'));
         }
