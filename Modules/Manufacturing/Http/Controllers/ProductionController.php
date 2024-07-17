@@ -557,7 +557,7 @@ class ProductionController extends Controller
             ->join('purchase_lines AS pl2', 'tsl2.lot_no_line_id', '=', 'pl2.id')
             ->where('products.business_id', $business_id)
             ->where('pl.lot_number', $lot_num)
-            ->where('products.id', 319)
+            ->where('products.id', $id_product)
             ->where('tsl2.variation_id', $variationId) // Utiliza el valor obtenido de la primera consulta
             ->groupBy('t.id', 'v.id', 'pl2.lot_number', 'products.name', 'products.id', 'units.short_name', 't.type')
             ->havingRaw('SUM(pl.quantity) > 0 AND quantity > 0')
