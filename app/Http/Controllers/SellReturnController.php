@@ -305,9 +305,17 @@ class SellReturnController extends Controller
                 $transaction->update([
                     'status' => 'cancel',
                 ]);
+
+                $ReturnSell = TransactionSellLine::Where('transaction_id',$sell_return->return_parent_id)->first();
+                // Actualizar retorno de venta, ya que no es un retorno, es una anulación LAESTRADA
+                $ReturnSell->update([
+                    'quantity_returned' => 0,
+                ]);
+
                 if(!empty($fel_invoice)){
                 //Generacion Anulacion FEL LAEC 2023  
                 $felauth=$this->transactionUtil->GenerateAnulationFEL($sell_return->return_parent_id,  $business_id, $sell_return->location_id );
+                
                 }else{
                     $felauth='';
                 }
