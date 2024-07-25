@@ -4085,7 +4085,6 @@ class TransactionUtil extends Util
     } catch (\Throwable $th) {
         dd($th);
     }
-dd($purchase_lines);
         return $purchase_lines;
     }
 
