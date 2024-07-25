@@ -4056,7 +4056,7 @@ class TransactionUtil extends Util
             } else {
                 $purchase_lines = PurchaseLine::join('transactions as T', 'purchase_lines.transaction_id', '=', 'T.id')
                 ->leftJoin('transaction_sell_lines_purchase_lines as tspl', 'purchase_lines.id', '=', 'tspl.purchase_line_id')
-                ->join('variations as v', 'purchase_lines.variation_id', '=', 'v.product_id')
+                ->join('variations as v', 'purchase_lines.variation_id', '=', 'v.id')
                 ->where('T.business_id', $business_id)
                 ->where('T.location_id', $location_id)
                 ->where('purchase_lines.variation_id', $variation_id)
@@ -4071,7 +4071,7 @@ class TransactionUtil extends Util
                             (
                                 SELECT SUM(quantity - quantity_returned) 
                                 FROM purchase_lines as pls 
-                                WHERE pls.variation_id = v.product_id
+                                WHERE pls.variation_id = v.id
                                 AND pls.lot_number = purchase_lines.lot_number
                             ), 
                             0
@@ -4085,7 +4085,7 @@ class TransactionUtil extends Util
     } catch (\Throwable $th) {
         dd($th);
     }
-
+dd($purchase_lines);
         return $purchase_lines;
     }
 
