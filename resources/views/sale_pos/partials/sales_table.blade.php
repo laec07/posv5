@@ -10,6 +10,7 @@
             <th>@lang('sale.customer_name')</th>
             <th>@lang('sale.sm_envio')</th> <!-- laestrada para sierra madre No envio -->
           <!--  <th>@lang('lang_v1.contact_no')</th> -->
+            <th>Número de DTE</th><!-- laestrada Número FEL -->
             <th>@lang('sale.location')</th>
             <th>@lang('sale.payment_status')</th>
             <th>@lang('lang_v1.payment_method')</th>
