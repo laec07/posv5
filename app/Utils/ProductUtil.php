@@ -2161,7 +2161,211 @@ class ProductUtil extends Util
 
         return array_reverse($stock_history_array);
     }
+/**
+ * Funciones para el reporte Historico completo por rango de fecha
+ * LAESTRADA 08/2024
+ */
+    
+    public function getVariationStockHistoryAll($business_id, $start_date, $end_date)
+    {
+        $stock_history = Transaction::leftjoin('transaction_sell_lines as sl',
+            'sl.transaction_id', '=', 'transactions.id')
+                                ->leftjoin('purchase_lines as pl',
+                                    'pl.transaction_id', '=', 'transactions.id')
+                                ->leftjoin('stock_adjustment_lines as al',
+                                    'al.transaction_id', '=', 'transactions.id')
+                                ->leftjoin('transactions as return', 'transactions.return_parent_id', '=', 'return.id')
+                                ->leftjoin('purchase_lines as rpl',
+                                    'rpl.transaction_id', '=', 'return.id')
+                                ->leftjoin('transaction_sell_lines as rsl',
+                                        'rsl.transaction_id', '=', 'return.id')
+                                ->leftjoin('contacts as c', 'transactions.contact_id', '=', 'c.id')
+                                ->join('products as p', function($join) {
+                                    $join->on('p.id', '=', 'pl.variation_id')
+                                         ->orOn('p.id', '=', 'sl.variation_id')
+                                         ->orOn('p.id', '=', 'al.variation_id')
+                                         ->orOn('p.id', '=', 'rpl.variation_id')
+                                         ->orOn('p.id', '=', 'rsl.variation_id');
+                                })
+                                ->where('transactions.business_id', $business_id)
+                                ->whereBetween('transactions.transaction_date', [$start_date, $end_date])
+                                ->whereIn('transactions.type', ['sell', 'purchase', 'stock_adjustment', 'opening_stock', 'sell_transfer', 'purchase_transfer', 'production_purchase', 'purchase_return', 'sell_return', 'production_sell'])
+                                ->select(
+                                    'p.name',
+                                    'transactions.id as transaction_id',
+                                    'transactions.type as transaction_type',
+                                    'sl.quantity as sell_line_quantity',
+                                    'pl.quantity as purchase_line_quantity',
+                                    'rsl.quantity_returned as sell_return',
+                                    'rpl.quantity_returned as purchase_return',
+                                    'al.quantity as stock_adjusted',
+                                    'pl.quantity_returned as combined_purchase_return',
+                                    'transactions.return_parent_id',
+                                    'transactions.transaction_date',
+                                    'transactions.status',
+                                    'transactions.invoice_no',
+                                    'transactions.ref_no',
+                                    'transactions.additional_notes',
+                                    'c.name as contact_name',
+                                    'c.supplier_business_name',
+                                    'pl.secondary_unit_quantity as purchase_secondary_unit_quantity',
+                                    'sl.secondary_unit_quantity as sell_secondary_unit_quantity'
+                                )
+                                ->orderBy('p.name','asc')
+                                ->orderBy('transactions.transaction_date', 'asc')
+                                
+                                ->get();
 
+        $stock_history_array = [];
+        $stock = 0;
+        $stock_in_second_unit = 0;
+        foreach ($stock_history as $stock_line) {
+            $temp_array = [
+                'name' => $stock_line->name,
+                'date' => $stock_line->transaction_date,
+                'transaction_id' => $stock_line->transaction_id,
+                'contact_name' => $stock_line->contact_name,
+                'supplier_business_name' => $stock_line->supplier_business_name,
+            ];
+            if ($stock_line->transaction_type == 'sell') {
+                if ($stock_line->status != 'final') {
+                    continue;
+                }
+                $quantity_change = -1 * $stock_line->sell_line_quantity;
+                $stock += $quantity_change;
+
+                $stock_in_second_unit -= $stock_line->sell_secondary_unit_quantity;
+                $stock_history_array[] = array_merge($temp_array, [
+                    'quantity_change' => $quantity_change,
+                    'stock' => $this->roundQuantity($stock),
+                    'type' => 'sell',
+                    'type_label' => __('sale.sale'),
+                    'ref_no' => $stock_line->invoice_no,
+                    'sell_secondary_unit_quantity' => ! empty($stock_line->sell_secondary_unit_quantity) ? $this->roundQuantity($stock_line->sell_secondary_unit_quantity) : 0,
+                    'stock_in_second_unit' => $this->roundQuantity($stock_in_second_unit),
+                ]);
+            } elseif ($stock_line->transaction_type == 'purchase') {
+                if ($stock_line->status != 'received') {
+                    continue;
+                }
+                $quantity_change = $stock_line->purchase_line_quantity;
+                $stock += $quantity_change;
+                $stock_in_second_unit += $stock_line->purchase_secondary_unit_quantity;
+                $stock_history_array[] = array_merge($temp_array, [
+                    'quantity_change' => $quantity_change,
+                    'stock' => $this->roundQuantity($stock),
+                    'type' => 'purchase',
+                    'type_label' => __('lang_v1.purchase'),
+                    'ref_no' => $stock_line->ref_no,
+                    'purchase_secondary_unit_quantity' => ! empty($stock_line->purchase_secondary_unit_quantity) ? $this->roundQuantity($stock_line->purchase_secondary_unit_quantity) : 0,
+                    'stock_in_second_unit' => $this->roundQuantity($stock_in_second_unit),
+                ]);
+            } elseif ($stock_line->transaction_type == 'stock_adjustment') {
+                $quantity_change = -1 * $stock_line->stock_adjusted;
+                $stock += $quantity_change;
+                $stock_history_array[] = array_merge($temp_array, [
+                    'quantity_change' => $quantity_change,
+                    'stock' => $this->roundQuantity($stock),
+                    'type' => 'stock_adjustment',
+                    'type_label' => __('stock_adjustment.stock_adjustment'),
+                    'ref_no' => $stock_line->ref_no,
+                    'stock_in_second_unit' => $this->roundQuantity($stock_in_second_unit),
+                ]);
+            } elseif ($stock_line->transaction_type == 'opening_stock') {
+                $quantity_change = $stock_line->purchase_line_quantity;
+                $stock += $quantity_change;
+                $stock_in_second_unit += $stock_line->purchase_secondary_unit_quantity;
+                $stock_history_array[] = array_merge($temp_array, [
+                    'quantity_change' => $quantity_change,
+                    'stock' => $this->roundQuantity($stock),
+                    'type' => 'opening_stock',
+                    'type_label' => __('report.opening_stock'),
+                    'ref_no' => $stock_line->ref_no ?? '',
+                    'additional_notes' => $stock_line->additional_notes,
+                    'purchase_secondary_unit_quantity' => ! empty($stock_line->purchase_secondary_unit_quantity) ? $this->roundQuantity($stock_line->purchase_secondary_unit_quantity) : 0,
+                    'stock_in_second_unit' => $this->roundQuantity($stock_in_second_unit),
+                ]);
+            } elseif ($stock_line->transaction_type == 'sell_transfer') {
+                if ($stock_line->status != 'final') {
+                    continue;
+                }
+                $quantity_change = -1 * $stock_line->sell_line_quantity;
+                $stock += $quantity_change;
+                $stock_history_array[] = array_merge($temp_array, [
+                    'quantity_change' => $quantity_change,
+                    'stock' => $this->roundQuantity($stock),
+                    'type' => 'sell_transfer',
+                    'type_label' => __('lang_v1.stock_transfers').' ('.__('lang_v1.out').')',
+                    'ref_no' => $stock_line->ref_no,
+                    'stock_in_second_unit' => $this->roundQuantity($stock_in_second_unit),
+                ]);
+            } elseif ($stock_line->transaction_type == 'purchase_transfer') {
+                if ($stock_line->status != 'received') {
+                    continue;
+                }
+
+                $quantity_change = $stock_line->purchase_line_quantity;
+                $stock += $quantity_change;
+                $stock_history_array[] = array_merge($temp_array, [
+                    'quantity_change' => $quantity_change,
+                    'stock' => $this->roundQuantity($stock),
+                    'type' => 'purchase_transfer',
+                    'type_label' => __('lang_v1.stock_transfers').' ('.__('lang_v1.in').')',
+                    'ref_no' => $stock_line->ref_no,
+                    'stock_in_second_unit' => $this->roundQuantity($stock_in_second_unit),
+                ]);
+            } elseif ($stock_line->transaction_type == 'production_sell') {
+                if ($stock_line->status != 'final') {
+                    continue;
+                }
+                $quantity_change = -1 * $stock_line->sell_line_quantity;
+                $stock += $quantity_change;
+                $stock_history_array[] = array_merge($temp_array, [
+                    'quantity_change' => $quantity_change,
+                    'stock' => $this->roundQuantity($stock),
+                    'type' => 'sell',
+                    'type_label' => __('manufacturing::lang.ingredient'),
+                    'ref_no' => '',
+                    'stock_in_second_unit' => $this->roundQuantity($stock_in_second_unit),
+                ]);
+            } elseif ($stock_line->transaction_type == 'production_purchase') {
+                $quantity_change = $stock_line->purchase_line_quantity;
+                $stock += $quantity_change;
+                $stock_history_array[] = array_merge($temp_array, [
+                    'quantity_change' => $quantity_change,
+                    'stock' => $this->roundQuantity($stock),
+                    'type' => 'production_purchase',
+                    'type_label' => __('manufacturing::lang.manufactured'),
+                    'ref_no' => $stock_line->ref_no,
+                    'stock_in_second_unit' => $this->roundQuantity($stock_in_second_unit),
+                ]);
+            } elseif ($stock_line->transaction_type == 'purchase_return') {
+                $quantity_change = -1 * ($stock_line->combined_purchase_return + $stock_line->purchase_return);
+                $stock += $quantity_change;
+                $stock_history_array[] = array_merge($temp_array, [
+                    'quantity_change' => $quantity_change,
+                    'stock' => $this->roundQuantity($stock),
+                    'type' => 'purchase_return',
+                    'type_label' => __('lang_v1.purchase_return'),
+                    'ref_no' => $stock_line->ref_no,
+                    'stock_in_second_unit' => $this->roundQuantity($stock_in_second_unit),
+                ]);
+            } elseif ($stock_line->transaction_type == 'sell_return') {
+                $quantity_change = $stock_line->sell_return;
+                $stock += $quantity_change;
+                $stock_history_array[] = array_merge($temp_array, [
+                    'quantity_change' => $quantity_change,
+                    'stock' => $this->roundQuantity($stock),
+                    'type' => 'purchase_transfer',
+                    'type_label' => __('lang_v1.sell_return'),
+                    'ref_no' => $stock_line->invoice_no,
+                    'stock_in_second_unit' => $this->roundQuantity($stock_in_second_unit),
+                ]);
+            }
+        }
+
+        return array_reverse($stock_history_array);
+    }
     /**
      * Function to calculate stock mismatches for all the variations or
      * the given variation in a location

@@ -1,22 +1,22 @@
 @extends('layouts.app')
-@section('title', __('lang_v1.product_stock_history'))
+@section('title', __('Historial Stock unificado'))
 
 @section('content')
 
 <!-- Content Header (Page header) -->
 <section class="content-header">
-    <h1>@lang('lang_v1.product_stock_history')</h1>
+    <h1>@lang('Historial Stock unificado')</h1>
 </section>
 
 <!-- Main content -->
 <section class="content">
 <div class="row">
     <div class="col-md-12">
-    @component('components.widget', ['title' => $product->name])
-        <div class="col-md-6">
+    @component('components.widget')
+    <div class="col-md-3">
             <div class="form-group">
-                {!! Form::label('product_id',  __('sale.product') . ':') !!}
-                {!! Form::select('product_id', [$product->id=>$product->name . ' - ' . $product->sku], $product->id, ['class' => 'form-control', 'style' => 'width:100%']); !!}
+                {!! Form::label('stock_history_date_range', __('report.date_range') . ':') !!}
+                {!! Form::text('stock_history_date_range', null, ['placeholder' => __('lang_v1.select_a_date_range'), 'class' => 'form-control', 'id' => 'stock_history_date_range', 'readonly']); !!}
             </div>
         </div>
         <div class="col-md-3">
@@ -25,6 +25,7 @@
                 {!! Form::select('location_id', $business_locations, request()->input('location_id', null), ['class' => 'form-control select2', 'style' => 'width:100%']); !!}
             </div>
         </div>
+        
         @if($product->type == 'variable')
             <div class="col-md-3">
                 <div class="form-group">
@@ -45,7 +46,7 @@
         @endif
     @endcomponent
     @component('components.widget')
-        <div id="product_stock_history" style="display: none;"></div>
+        <div id="product_stock_history_all" style="display: none;"></div>
     @endcomponent
     </div>
 </div>
@@ -57,8 +58,40 @@
 @section('javascript')
    <script type="text/javascript">
         $(document).ready( function(){
-            load_stock_history($('#variation_id').val(), $('#location_id').val());
+                        // Definir el formato de fecha
+                        var moment_date_format = 'YYYY-MM-DD'; // Asegúrate de que esto coincida con el formato que estás utilizando
 
+                // Configuración de dateRangePicker con rango de fechas predeterminado
+                var dateRangeSettings = {
+                    startDate: moment().subtract(7, 'days'), // Fecha de inicio: Hace 7 días
+                    endDate: moment(), // Fecha de fin: Hoy
+                    locale: {
+                        format: moment_date_format,
+                        applyLabel: 'Aplicar',
+                        cancelLabel: 'Cancelar',
+                        customRangeLabel: 'Rango personalizado'
+                    },
+                    ranges: {
+                        'Hoy': [moment(), moment()],
+                        'Ayer': [moment().subtract(1, 'day'), moment().subtract(1, 'day')],
+                        'Hace 7 días': [moment().subtract(7, 'days'), moment()],
+                        'Este mes': [moment().startOf('month'), moment().endOf('month')],
+                        'El mes pasado': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+                        'Este año': [moment().startOf('year'), moment().endOf('year')],
+                        'El año pasado': [moment().subtract(1, 'year').startOf('year'), moment().subtract(1, 'year').endOf('year')]
+                    }
+                };
+
+            $('#stock_history_date_range').daterangepicker(
+            dateRangeSettings, 
+            function(start, end) {
+                $('#stock_history_date_range').val(
+                    start.format(moment_date_format) + ' ~ ' + end.format(moment_date_format)
+                );
+                load_stock_history( $('#location_id').val());
+            });
+
+            load_stock_history( $('#location_id').val());
             $('#product_id').select2({
                 ajax: {
                     url: '/products/list-no-variation',
@@ -81,21 +114,30 @@
                 },
             }).on('select2:select', function (e) {
                 var data = e.params.data;
-                window.location.href = "{{url('/')}}/products/stock-history/" + data.id
+                window.location.href = "{{url('/')}}/products/stock-history-all" + data.id
             });
         });
 
-       function load_stock_history(variation_id, location_id) {
-            $('#product_stock_history').fadeOut();
+       function load_stock_history( location_id) {
+            $('#product_stock_history_all').fadeOut();
+
+            var start = $('input#stock_history_date_range').data('daterangepicker').startDate.format('YYYY-MM-DD');
+            var end = $('input#stock_history_date_range').data('daterangepicker').endDate.format('YYYY-MM-DD');
+
             $.ajax({
-                url: '/products/stock-history/' + variation_id + "?location_id=" + location_id,
+                url: '/products/stock-history-all',
+                data:{
+                    location_id: location_id,
+                    start_date: start,
+                    end_date: end
+                },
                 dataType: 'html',
                 success: function(result) {
-                    $('#product_stock_history')
+                    $('#product_stock_history_all')
                         .html(result)
                         .fadeIn();
 
-                    __currency_convert_recursively($('#product_stock_history'));
+                    __currency_convert_recursively($('#product_stock_history_all'));
 
                     $('#stock_history_table').DataTable({
                         searching: false,
@@ -105,8 +147,8 @@
             });
        }
 
-       $(document).on('change', '#variation_id, #location_id', function(){
-            load_stock_history($('#variation_id').val(), $('#location_id').val());
+       $(document).on('change', ' #location_id', function(){
+            load_stock_history( $('#location_id').val());
        });
    </script>
 @endsection

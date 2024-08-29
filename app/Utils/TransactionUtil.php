@@ -1213,13 +1213,13 @@ class TransactionUtil extends Util
                     # Acción si es correcto
                     // Guardar el XML Certificado en bd
                     $felfac= FelFacturas::create([
+                        'numerofel' => $resultado->numero,
                         'id_transaction' => $transaction_id,
                         'bussines_id' => $location_id,
                         'invoice_no' => $transaction->invoice_no,
                         'fel_certificado' =>$resultado->xml_certificado,
                         'no_acceso' => $identificador,
                         'nitreceptor' => $customer->contact_id,
-                        'numerofel' => $resultado->numero,
                         'numeroautorizacion' => $resultado->uuid,
                         'montogravable' => $montoGravable,
                         'impuestototal' => $impuestoTotal,
@@ -5799,6 +5799,7 @@ class TransactionUtil extends Util
         $query = Transaction::where('transactions.contact_id', $contact_id)
                         ->where('transactions.business_id', $business_id)
                         ->where('transactions.status', '!=', 'draft')
+                        ->where('transactions.status', '!=', 'cancel') //LAESTRADA para que no  muestre saldo al eliminar factura
                         ->whereIn('transactions.type', $transaction_type_keys);
 
         if (! empty($start) && ! empty($end)) {

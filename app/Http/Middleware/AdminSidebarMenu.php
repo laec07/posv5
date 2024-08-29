@@ -561,10 +561,10 @@ class AdminSidebarMenu
                                     ['icon' => 'fa fas fa-sliders-h', 'active' => request()->segment(2) == 'stock-adjustment-report']
                                 );
                             }
-                            $sub->url( //LESTRADA
-                                action([\App\Http\Controllers\ReportController::class, 'activityLog']),
-                                __('Reporte Stock historico'),
-                                ['icon' => 'fa fas fa-user-secret', 'active' => request()->segment(2) == 'activity-log']
+                            $sub->url( //LAESTRADA
+                                action([\App\Http\Controllers\ProductController::class, 'productStockHistoryAll']),
+                                __('Informe Stock historico'),
+                                ['icon' => 'fa fas fa-user-secret', 'active' => request()->segment(2) == 'stock-history-all']
                             );
                         }
 

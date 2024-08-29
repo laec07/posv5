@@ -2305,6 +2305,39 @@ class ProductController extends Controller
                 ->with(compact('product', 'business_locations'));
     }
 
+    public function productStockHistoryAll(Request $request)
+    {
+        if (! auth()->user()->can('product.view')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $business_id = request()->session()->get('user.business_id');
+        
+        $id = 465;
+        $variation_id = $request->input('variation_id');
+        $location_id = $request->input('location_id');
+        $start_date = $request->input('start_date');
+        $end_date = $request->input('end_date');
+        if (request()->ajax()) {
+
+            //for ajax call $id is variation id else it is product id
+            $stock_history = $this->productUtil->getVariationStockHistoryAll($business_id, $start_date, $end_date);
+
+            return view('product.stock_history_details_all')
+                ->with(compact('stock_history'));
+        }
+
+        $product = Product::where('business_id', $business_id)
+                            ->with(['variations', 'variations.product_variation'])
+                            ->findOrFail($id);
+        //dd($product);
+        //Get all business locations
+        $business_locations = BusinessLocation::forDropdown($business_id);
+
+        return view('product.stock_history_all')
+                ->with(compact('product', 'business_locations'));
+    }
+
     /**
      * Toggle WooComerce sync
      *
