@@ -982,6 +982,42 @@ class TransactionUtil extends Util
 
         return $felinvoice;
     }
+
+    public function SavePosNumeroFel($numero_fel, $id_fel){
+        $felinvoice = FelFacturas::where('numeroautorizacion', $id_fel)
+        ->first();
+
+        if ($felinvoice && !empty($felinvoice->json)) {
+            // Decodificar el valor Base64
+            $json_decodificado = base64_decode($felinvoice->json);
+
+            // Convertir el JSON decodificado a un array PHP
+            $json_array = json_decode($json_decodificado, true);
+
+            // Verificar si la decodificación fue exitosa
+            if (json_last_error() === JSON_ERROR_NONE) {
+                // Recorrer el JSON para obtener el valor de "numero"
+                if (isset($json_array['numero'])) {
+                    $numero = $json_array['numero'];
+
+                    // Actualizar el campo 'numerofel' en la base de datos
+                    $felinvoice->numerofel = $numero;
+                    $felinvoice->fel_firmado = "Numero Negativo: " .$numero_fel."Nuevo numero: ".$numero;
+                    $felinvoice->save();
+                } else {
+                    $felinvoice->fel_firmado = "El campo 'numero' no se encontró en el JSON.";
+                    $felinvoice->save();
+                }
+            } else {
+                $felinvoice->fel_firmado = "Error al decodificar el JSON: " . json_last_error_msg();
+                $felinvoice->save();
+            }
+        } else {
+            $felinvoice->fel_firmado = "Registro no encontrado o campo 'json' vacío.";
+            $felinvoice->save();
+
+        }
+    }
     /**
      * Genera XML para INFILE LAEC 31032023.
      *
@@ -1227,9 +1263,16 @@ class TransactionUtil extends Util
                         'fechacertificacion' => $resultado->fecha,
                         'estado' =>'CERT',
                         'json' => $json_base64,
+                        'fel_adic' => $$resultado->numero,
                     ]);
                     //obtenemos el ID del registro para actualizarlo
                     $felfac = FelFacturas::find($felfac->id);
+                    //Numero negativo
+                    $valneg = Str::substr($resultado->numero, 0, 1);
+                    if($valneg=="-"){
+                        $this->SavePosNumeroFel($resultado->numero, $resultado->uuid);
+                    }
+                    
                     return $resultado->uuid;
                 
                 }else{
@@ -5423,7 +5466,7 @@ class TransactionUtil extends Util
                     'transactions.type',
                     'transactions.is_direct_sale',
                     'transactions.invoice_no',
-                    'fel.numerofel',
+                    'fel.numerofel as numerofel',
                     'fel.numeroautorizacion',
                     'transactions.invoice_no as invoice_no_text',
                     'contacts.name',

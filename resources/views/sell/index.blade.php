@@ -164,7 +164,7 @@ $(document).ready( function(){
             { data: 'invoice_no', name: 'invoice_no'},
             { data: 'conatct_name', name: 'conatct_name'},
             { data: 'custom_field_1', name: 'contacts.mobile'}, //  laestrada para sierra madre No envio
-            { data: 'numerofel', name: 'numerofel',"searchable": false}, //  laestrada para sierra madre FEL
+            { data: 'numerofel', name: 'fel.numerofel'}, //  laestrada para sierra madre FEL, corregir error datatable usar nombre del select en el name
             { data: 'business_location', name: 'bl.name',visible: false},
             { data: 'payment_status', name: 'payment_status'},
             { data: 'payment_methods', orderable: false, "searchable": false},
