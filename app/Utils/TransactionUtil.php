@@ -987,35 +987,13 @@ class TransactionUtil extends Util
         $felinvoice = FelFacturas::where('numeroautorizacion', $id_fel)
         ->first();
 
-        if ($felinvoice && !empty($felinvoice->json)) {
-            // Decodificar el valor Base64
-            $json_decodificado = base64_decode($felinvoice->json);
-
-            // Convertir el JSON decodificado a un array PHP
-            $json_array = json_decode($json_decodificado, true);
-
-            // Verificar si la decodificación fue exitosa
-            if (json_last_error() === JSON_ERROR_NONE) {
-                // Recorrer el JSON para obtener el valor de "numero"
-                if (isset($json_array['numero'])) {
-                    $numero = $json_array['numero'];
-
-                    // Actualizar el campo 'numerofel' en la base de datos
-                    $felinvoice->numerofel = $numero;
-                    $felinvoice->fel_firmado = "Numero Negativo: " .$numero_fel."Nuevo numero: ".$numero;
-                    $felinvoice->save();
-                } else {
-                    $felinvoice->fel_firmado = "El campo 'numero' no se encontró en el JSON.";
-                    $felinvoice->save();
-                }
-            } else {
-                $felinvoice->fel_firmado = "Error al decodificar el JSON: " . json_last_error_msg();
-                $felinvoice->save();
-            }
-        } else {
-            $felinvoice->fel_firmado = "Registro no encontrado o campo 'json' vacío.";
+        if ($felinvoice) {
+            // Extraer el número después de "numero_"
+            $numero = Str::after($felinvoice->fel_adic, 'numero_');
+            // Asignar el número extraído al campo "numerofel"
+            $felinvoice->numerofel = $numero;
+            // Guardar los cambios en la base de datos
             $felinvoice->save();
-
         }
     }
     /**
@@ -1059,12 +1037,12 @@ class TransactionUtil extends Util
             if(empty($customer->state)){
                 $customer->state='GUATEMALA';
             }
-            if(empty($customer->landmark)){
-                $customer->landmark='CIUDAD';
+            if(empty($customer->address_line_1)){
+                $customer->address_line_1='CIUDAD';
             }
         try {
 
-
+            dd($customer->address_line_1);
             $sell_line_relations = ['modifiers'];
             $il = $invoice_layout;
             $lines = $transaction->sell_lines()->whereNull('parent_sell_line_id')->with($sell_line_relations)->get();
@@ -1134,7 +1112,7 @@ class TransactionUtil extends Util
                 }
                 // SAT -> DTE -> DatosEmision -> Receptor -> DireccionReceptor
                 $dte_DireccionReceptor = $dte_Receptor->addChild('dte:DireccionReceptor');
-                $dte_DireccionReceptor->addChild('Direccion', $customer->landmark);
+                $dte_DireccionReceptor->addChild('Direccion', $customer->address_line_1);
                 $dte_DireccionReceptor->addChild('CodigoPostal', $location_details->zip_code);
                 $dte_DireccionReceptor->addChild('Municipio', $customer->city);
                 $dte_DireccionReceptor->addChild('Departamento', $customer->state);
@@ -1263,15 +1241,14 @@ class TransactionUtil extends Util
                         'fechacertificacion' => $resultado->fecha,
                         'estado' =>'CERT',
                         'json' => $json_base64,
-                        'fel_adic' => $$resultado->numero,
+                        'fel_adic' => 'numero_'.$resultado->numero,
                     ]);
                     //obtenemos el ID del registro para actualizarlo
                     $felfac = FelFacturas::find($felfac->id);
                     //Numero negativo
                     $valneg = Str::substr($resultado->numero, 0, 1);
-                    if($valneg=="-"){
-                        $this->SavePosNumeroFel($resultado->numero, $resultado->uuid);
-                    }
+                    $this->SavePosNumeroFel($resultado->numero, $resultado->uuid);
+
                     
                     return $resultado->uuid;
                 

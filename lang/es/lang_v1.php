@@ -1015,7 +1015,7 @@ return [
     'generated_recurring_expense' => 'Gasto recurrente generado',
     'select_contacts' => 'Seleccionar contactos',
     'middle_name' => 'Segundo nombre',
-    'address_line_1' => 'Dirección Línea 1',
+    'address_line_1' => 'Dirección Línea 1 (fel)',
     'address_line_2' => 'Línea de dirección 2',
     'dob' => 'Fecha de nacimiento',
     'dob_ins' => 'Formato Y-m-d',
