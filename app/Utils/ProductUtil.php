@@ -2192,6 +2192,7 @@ class ProductUtil extends Util
                                 ->whereIn('transactions.type', ['sell', 'purchase', 'stock_adjustment', 'opening_stock', 'sell_transfer', 'purchase_transfer', 'production_purchase', 'purchase_return', 'sell_return', 'production_sell'])
                                 ->select(
                                     'p.name',
+                                    'p.sku',
                                     'transactions.id as transaction_id',
                                     'transactions.type as transaction_type',
                                     'sl.quantity as sell_line_quantity',
@@ -2222,6 +2223,7 @@ class ProductUtil extends Util
         foreach ($stock_history as $stock_line) {
             $temp_array = [
                 'name' => $stock_line->name,
+                'sku' => $stock_line->sku,
                 'date' => $stock_line->transaction_date,
                 'transaction_id' => $stock_line->transaction_id,
                 'contact_name' => $stock_line->contact_name,

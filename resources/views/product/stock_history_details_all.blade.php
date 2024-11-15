@@ -26,7 +26,7 @@
 			<tbody>
 			@forelse($stock_history as $history)
 				<tr>
-					<td>{{$history['name']}}</td>
+					<td>{{$history['name']}} {{$history['sku']}}</td>
 					<td>{{$history['type_label']}}</td>
 					@if($history['quantity_change'] > 0 )
 						<td class="text-success"> +<span class="display_currency" data-is_quantity="true">{{$history['quantity_change']}}</span>
