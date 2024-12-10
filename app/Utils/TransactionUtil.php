@@ -1041,8 +1041,6 @@ class TransactionUtil extends Util
                 $customer->address_line_1='CIUDAD';
             }
         try {
-
-            dd($customer->address_line_1);
             $sell_line_relations = ['modifiers'];
             $il = $invoice_layout;
             $lines = $transaction->sell_lines()->whereNull('parent_sell_line_id')->with($sell_line_relations)->get();
@@ -1128,6 +1126,7 @@ class TransactionUtil extends Util
                 // SAT -> DTE -> DatosEmision -> Items -> Item  
                 //Detalle de producto <<<<---
             foreach ($details['lines'] as $line) {
+                $lotVal = ($line['lot_number']) ? " ".$line['lot_number_label'].": ".$line['lot_number'] : "";//Mostrar lote en factura LAESTRADA
                 $bienoserv = ($line['enable_stock']=='1') ? 'B' : 'S' ; //Valida si es Bien o servicio
                 $num = (float)str_replace(',', '', $line['line_total_exc_tax_uf']); //Se formatea string a texto cuando por la , y . laec052023
                 $impuesto=$line['unit_price_inc_tax']*0.12;
@@ -1140,7 +1139,7 @@ class TransactionUtil extends Util
                 $precio= $cantidad * $prsunit;
                 $dte_Item->addChild('Cantidad', $cantidad);
                 $dte_Item->addChild('UnidadMedida',$line['units']);
-                $dte_Item->addChild('Descripcion', $line['name']);
+                $dte_Item->addChild('Descripcion', $line['name']. $lotVal );
                 $dte_Item->addChild('PrecioUnitario', $prsunit);
                 $dte_Item->addChild('Precio', $precio);
                 $dte_Item->addChild('Descuento',$totallinediscount);

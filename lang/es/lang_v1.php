@@ -352,7 +352,7 @@ return [
     'show_product_expiry' => 'Mostrar caducidad del producto',
     'show_lot_number' => 'Mostrar número de lote',
     'expiry' => 'Expiración',
-    'lot' => 'Mucho',
+    'lot' => 'Lote',
     'lot_n_expiry' => 'Lote y vencimiento',
     'pos_edit_product_price_help' => 'Editar producto Precio unitario e impuesto',
     'name' => 'Nombre',
