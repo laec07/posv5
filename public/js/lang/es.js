@@ -114,4 +114,5 @@ LANG = {
 'enter_pin_here': 'Ingrese el PIN aquí',
 'authentication_failed': '¡Autenticación fallida!',
 'authentication_successfull': 'Autenticación exitosa',
+'last_year_and_this_year': 'Año anterior - Año actual',
 };

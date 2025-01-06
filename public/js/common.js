@@ -328,6 +328,10 @@ ranges[LANG.last_financial_year] = [
     moment(financial_year.start._i).subtract(1, 'year'),
     moment(financial_year.end._i).subtract(1, 'year'),
 ];
+ranges[LANG.last_year_and_this_year] = [
+    moment().startOf('year').subtract(1, 'year'), // Inicio del año pasado LAESTRADA
+    moment().endOf('year') // Fin del año actual LAESTRADA
+];
 
 var dateRangeSettings = {
     ranges: ranges,
