@@ -1126,15 +1126,16 @@ class TransactionUtil extends Util
                 // SAT -> DTE -> DatosEmision -> Items -> Item  
                 //Detalle de producto <<<<---
             foreach ($details['lines'] as $line) {
-                $lotVal = ($line['lot_number']) ? " ".$line['lot_number_label'].": ".$line['lot_number'] : "";//Mostrar lote en factura LAESTRADA
+               // dd($line);
+                $lotVal = (!empty($line['lot_number'])) ? " ".$line['lot_number_label'].": ".$line['lot_number'] : "";//Mostrar lote en factura LAESTRADA
                 $bienoserv = ($line['enable_stock']=='1') ? 'B' : 'S' ; //Valida si es Bien o servicio
-                $num = (float)str_replace(',', '', $line['line_total_exc_tax_uf']); //Se formatea string a texto cuando por la , y . laec052023
-                $impuesto=$line['unit_price_inc_tax']*0.12;
+                $num = (float)str_replace(',', '', $line['line_total_exc_tax_uf']); //Se formatea string a texto cuando por la , y . laec052023 / precio unitario  con impuesto incluido LAESTRADA 12122024
+                //$impuesto=(float)str_replace(',', '', $line['unit_price_inc_tax'])*0.12;
                 $dte_Item = $dte_Items->addChild('dte:Item');
                 $dte_Item->addAttribute('BienOServicio', $bienoserv);
                 $dte_Item->addAttribute('NumeroLinea', $Corr);
                 $cantidad=(float)str_replace(',', '', $line['quantity']); //Se formatea string a texto cuando por la , y . laec052023
-                $prsunit =(float)str_replace(',', '', ($line['unit_price_before_discount']));
+                $prsunit =(float)str_replace(',', '', ($line['unit_price_before_discount']));// precio unitario  con impuesto incluido LAESTRADA 12122024
                 $totallinediscount =(float)str_replace(',', '', ($line['total_line_discount']));
                 $precio= $cantidad * $prsunit;
                 $dte_Item->addChild('Cantidad', $cantidad);
@@ -1179,8 +1180,8 @@ class TransactionUtil extends Util
             $xmlString = $xml->asXML();
             
             // Generar y guardad archivo FEl para testear errores
-           // $fileError3 = 'file_fel/XML_'.$transaction_id.'SNCERT.txt';
-           // file_put_contents($fileError3, $xmlString);
+            $fileError3 = 'file_fel/XML_'.$transaction_id.'SNCERT.txt';
+            file_put_contents($fileError3, $xmlString);
 
             //Convierte XML a base64
             // $archivo= base64_encode($xmlString);
@@ -1558,7 +1559,7 @@ class TransactionUtil extends Util
             if (! empty($temp)) {
                 $output['customer_custom_fields'] .= implode('<br>', $temp);
             }
-            
+           
             //To be used in pdfs
             $customer_address = [];
             if (! empty($customer->supplier_business_name)) {
@@ -1799,8 +1800,10 @@ class TransactionUtil extends Util
         $output['cat_code_label'] = $il->cat_code_label;
 
         //Subtotal
-        $output['subtotal_label'] = $il->sub_total_label.':';
-        $output['subtotal'] = ($transaction->total_before_tax != 0) ? $this->num_f($transaction->total_before_tax, $show_currency, $business_details) : 0;
+        $output['subtotal_label'] = $il->sub_total_label.':';    
+
+        $format_function = !empty($customer->custom_field1) ? 'num_f2' : 'num_f';// LAESTRADA MONEDA $ SIERRA MADRE
+        $output['subtotal'] = ($transaction->total_before_tax != 0) ? $this->{$format_function}($transaction->total_before_tax, $show_currency, $business_details): 0; // LAESTRADA MONEDA $ SIERRA MADRE
         $output['subtotal_unformatted'] = ($transaction->total_before_tax != 0) ? $transaction->total_before_tax : 0;
 
         //round off
@@ -1876,10 +1879,10 @@ class TransactionUtil extends Util
         //Total
         if ($transaction_type == 'sell_return') {
             $output['total_label'] = $invoice_layout->cn_amount_label.':';
-            $output['total'] = $this->num_f($transaction->final_total, $show_currency, $business_details);
+            $output['total'] = $this->{$format_function}($transaction->final_total, $show_currency, $business_details);// LAESTRADA MONEDA
         } else {
             $output['total_label'] = $invoice_layout->total_label.':';
-            $output['total'] = $this->num_f($transaction->final_total, $show_currency, $business_details);
+            $output['total'] = $this->{$format_function}($transaction->final_total, $show_currency, $business_details);// LAESTRADA MONEDA
         }
         if (! empty($il->common_settings['show_total_in_words'])) {
             $word_format = isset($il->common_settings['num_to_word_format']) ? $il->common_settings['num_to_word_format'] : 'international';
@@ -1893,9 +1896,9 @@ class TransactionUtil extends Util
             $paid_amount = $this->getTotalPaid($transaction->id);
             $due = $transaction->final_total - $paid_amount;
 
-            $output['total_paid'] = ($paid_amount == 0) ? 0 : $this->num_f($paid_amount, $show_currency, $business_details);
+            $output['total_paid'] = ($paid_amount == 0) ? 0 : $this->{$format_function}($paid_amount, $show_currency, $business_details);// LAESTRADA MONEDA
             $output['total_paid_label'] = $il->paid_label;
-            $output['total_due'] = ($due == 0) ? 0 : $this->num_f($due, $show_currency, $business_details);
+            $output['total_due'] = ($due == 0) ? 0 : $this->{$format_function}($due, $show_currency, $business_details); // LAESTRADA MONEDA
             $output['total_due_label'] = $il->total_due_label;
 
             if ($il->show_previous_bal == 1) {

@@ -83,6 +83,42 @@ class Util
         return $formatted;
     }
 
+    
+    /**
+     * This function formats a number and returns them in specified format LAESTRADA
+     * SE UTILIZA PARA DEJAR ETIQUETA $ POR DEFAULT 
+     * @param  int  $input_number
+     * @param  bool  $add_symbol = false
+     * @param  array  $business_details = null
+     * @param  bool  $is_quantity = false; If number represents quantity
+     * @return string
+     */
+    public function num_f2($input_number, $add_symbol = false, $business_details = null, $is_quantity = false)
+    {
+        $thousand_separator = ! empty($business_details) ? $business_details->thousand_separator : session('currency')['thousand_separator'];
+        $decimal_separator = ! empty($business_details) ? $business_details->decimal_separator : session('currency')['decimal_separator'];
+
+        $currency_precision = ! empty($business_details) ? $business_details->currency_precision : session('business.currency_precision', 2);
+
+        if ($is_quantity) {
+            $currency_precision = ! empty($business_details) ? $business_details->quantity_precision : session('business.quantity_precision', 2);
+        }
+
+        $formatted = number_format($input_number, $currency_precision, $decimal_separator, $thousand_separator);
+
+        if ($add_symbol) {
+            $currency_symbol_placement = ! empty($business_details) ? $business_details->currency_symbol_placement : session('business.currency_symbol_placement');
+            $symbol = "$";
+
+            if ($currency_symbol_placement == 'after') {
+                $formatted = $formatted.' '.$symbol;
+            } else {
+                $formatted = $symbol.' '.$formatted;
+            }
+        }
+
+        return $formatted;
+    }
     /**
      * Calculates percentage for a given number
      *

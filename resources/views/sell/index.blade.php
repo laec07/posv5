@@ -55,7 +55,7 @@
                         <th>@lang('lang_v1.shipping_status')</th>
                         <th>@lang('lang_v1.total_items')</th>
                         <th>@lang('lang_v1.types_of_service')</th>
-                        <th>{{ $custom_labels['types_of_service']['custom_field_1'] ?? __('lang_v1.service_custom_field_1' )}}</th>
+                     <!--   <th>{{ $custom_labels['types_of_service']['custom_field_1'] ?? __('lang_v1.service_custom_field_1' )}}</th>-->
                         <th>{{ $custom_labels['sell']['custom_field_1'] ?? '' }}</th>
                         <th>{{ $custom_labels['sell']['custom_field_2'] ?? ''}}</th>
                         <th>{{ $custom_labels['sell']['custom_field_3'] ?? ''}}</th>
@@ -124,6 +124,7 @@ $(document).ready( function(){
         aaSorting: [[1, 'desc']],
         "ajax": {
             "url": "/sells",
+            "dataType": 'json',
             "data": function ( d ) {
                 if($('#sell_list_filter_date_range').val()) {
                     var start = $('#sell_list_filter_date_range').data('daterangepicker').startDate.format('YYYY-MM-DD');
@@ -155,6 +156,7 @@ $(document).ready( function(){
                 d = __datatable_ajax_callback(d);
             }
         },
+        
         scrollY:        "75vh",
         scrollX:        true,
         scrollCollapse: true,
@@ -176,7 +178,7 @@ $(document).ready( function(){
             { data: 'total_items', name: 'total_items', "searchable": false,visible: false},
             { data: 'types_of_service_name', name: 'tos.name', @if(empty($is_types_service_enabled)) visible: false @endif},
             { data: 'service_custom_field_1', name: 'service_custom_field_1', @if(empty($is_types_service_enabled)) visible: false @endif},
-            { data: 'custom_field_1', name: 'transactions.custom_field_1', @if(empty($custom_labels['sell']['custom_field_1'])) visible: false @endif},
+           // { data: 'custom_field_1', name: 'transactions.custom_field_1', @if(empty($custom_labels['sell']['custom_field_1'])) visible: false @endif},
             { data: 'custom_field_2', name: 'transactions.custom_field_2', @if(empty($custom_labels['sell']['custom_field_2'])) visible: false @endif},
             { data: 'custom_field_3', name: 'transactions.custom_field_3', @if(empty($custom_labels['sell']['custom_field_3'])) visible: false @endif},
             { data: 'custom_field_4', name: 'transactions.custom_field_4', @if(empty($custom_labels['sell']['custom_field_4'])) visible: false @endif},
