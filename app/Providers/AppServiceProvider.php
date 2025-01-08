@@ -234,6 +234,30 @@ class AppServiceProvider extends ServiceProvider
             echo $formated_number; ?>';
         });
 
+        Blade::directive('format_currency2', function ($number) {
+            return '<?php 
+            $formated_number = "";
+            $currency_symbol =  "$"; // Usa $ como símbolo predeterminado
+        
+            if (session("business.currency_symbol_placement") == "before") {
+                $formated_number .= $currency_symbol . " ";
+            } 
+            
+            $formated_number .= number_format(
+                (float) '.$number.',
+                session("business.currency_precision", 2),
+                session("currency")["decimal_separator"],
+                session("currency")["thousand_separator"]
+            );
+        
+            if (session("business.currency_symbol_placement") == "after") {
+                $formated_number .= " " . $currency_symbol;
+            }
+            
+            echo $formated_number; 
+            ?>';
+        });
+
         $this->registerCommands();
     }
 

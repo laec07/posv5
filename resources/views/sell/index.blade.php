@@ -71,7 +71,7 @@
                 <tbody></tbody>
                 <tfoot>
                     <tr class="bg-gray font-17 footer-total text-center">
-                        <td colspan="6"><strong>@lang('sale.total'):</strong></td>
+                        <td colspan="7"><strong>@lang('sale.total'):</strong></td>
                         <td class="footer_payment_status_count"></td>
                         <td class="payment_method_count"></td>
                         <td class="footer_sale_total"></td>
@@ -169,7 +169,7 @@ $(document).ready( function(){
             { data: 'transaction_date', name:  'transaction_date'  },
             { data: 'invoice_no', name: 'invoice_no'},
             { data: 'conatct_name', name: 'conatct_name'},
-            { data: 'custom_field_1', name: 'contacts.mobile'}, //  laestrada para sierra madre No envio
+            { data: 'custom_field_1', name: 'transactions.custom_field_1'}, //  laestrada para sierra madre No envio // se cambia a 'transactions.custom_field_1' para que busque por envio interno
             { data: 'numerofel', name: 'fel.numerofel'}, //  laestrada para sierra madre FEL, corregir error datatable usar nombre del select en el name
             { data: 'business_location', name: 'bl.name',visible: false},
             { data: 'payment_status', name: 'payment_status'},

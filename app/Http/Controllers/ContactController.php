@@ -178,7 +178,7 @@ class ContactController extends Controller
                         $html .= '<li><a href="'.action([\App\Http\Controllers\ContactController::class, 'updateStatus'], [$row->id]).'"class="update_contact_status"><i class="fas fa-power-off"></i>';
 
                         if ($row->contact_status == 'active') {
-                            $html .= __('messages.deactivate');
+                            $html .= __('messages.deactivate'); 
                         } else {
                             $html .= __('messages.activate');
                         }
