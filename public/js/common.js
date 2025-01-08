@@ -335,8 +335,8 @@ ranges[LANG.last_year_and_this_year] = [
 
 var dateRangeSettings = {
     ranges: ranges,
-    startDate: financial_year.start,
-    endDate: financial_year.end,
+    startDate: moment().startOf('year').subtract(1, 'year'), // Inicio del año pasado
+    endDate: moment().endOf('year'), // Fin del año actual
     locale: {
         cancelLabel: LANG.clear,
         applyLabel: LANG.apply,

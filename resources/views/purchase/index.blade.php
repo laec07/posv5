@@ -87,11 +87,7 @@
 <script>
     //Date range as a button
     $('#purchase_list_filter_date_range').daterangepicker(
-        {
-            ...dateRangeSettings, // Mantiene la configuraciones existentes
-            startDate: moment().startOf('year').subtract(1, 'year'), //Inicia el año pasado
-            endDate: moment().endOf('year') // Finaliza año actual
-        },
+        dateRangeSettings,
         function (start, end) {
             $('#purchase_list_filter_date_range').val(start.format(moment_date_format) + ' ~ ' + end.format(moment_date_format));
            purchase_table.ajax.reload();

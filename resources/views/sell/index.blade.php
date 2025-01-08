@@ -107,11 +107,7 @@
 $(document).ready( function(){
     //Date range as a button
     $('#sell_list_filter_date_range').daterangepicker(
-        {
-            ...dateRangeSettings, // Mantiene la configuraciones existentes
-            startDate: moment().startOf('year').subtract(1, 'year'), //Inicia el año pasado
-            endDate: moment().endOf('year') // Finaliza año actual
-        },
+        dateRangeSettings,
         function (start, end) {
             $('#sell_list_filter_date_range').val(start.format(moment_date_format) + ' ~ ' + end.format(moment_date_format));
             sell_table.ajax.reload();
