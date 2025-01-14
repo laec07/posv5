@@ -6044,7 +6044,8 @@ class TransactionUtil extends Util
             $sell_return_data['type'] = 'sell_return';
             $sell_return_data['status'] = 'final';
             $sell_return_data['created_by'] = $user_id;
-            $sell_return_data['return_parent_id'] = $sell->id;
+            $sell_return_data['invoice_no'] = $sell->invoice_no; //LAESTRADA Para dejar registro Número factura
+            $sell_return_data['return_parent_id'] = $sell->id; 
             $sell_return = Transaction::create($sell_return_data);
 
             $this->activityLog($sell_return, 'added');
@@ -6065,6 +6066,7 @@ class TransactionUtil extends Util
                 $this->updateCustomerRewardPoints($sell->contact_id, $new_reward_point, $sell->rp_earned);
 
                 $sell->rp_earned = $new_reward_point;
+                $sell->status = 'cancel';
                 $sell->save();
             }
         }

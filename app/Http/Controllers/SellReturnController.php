@@ -148,15 +148,15 @@ class SellReturnController extends Controller
                     </button>
                     <ul class="dropdown-menu dropdown-menu-right" role="menu">
                         <li><a href="#" class="btn-modal" data-container=".view_modal" data-href="{{action(\'App\Http\Controllers\SellReturnController@show\', [$parent_sale_id])}}"><i class="fas fa-eye" aria-hidden="true"></i> @lang("messages.view")</a></li>
-                        <li><a href="{{action(\'App\Http\Controllers\SellReturnController@add\', [$parent_sale_id])}}" ><i class="fa fa-edit" aria-hidden="true"></i> @lang("messages.edit")</a></li>
-                        <li><a href="{{action(\'App\Http\Controllers\SellReturnController@destroy\', [$id])}}" class="delete_sell_return" ><i class="fa fa-trash" aria-hidden="true"></i> @lang("messages.delete")</a></li>
+                        <!--<li><a href="{{action(\'App\Http\Controllers\SellReturnController@add\', [$parent_sale_id])}}" ><i class="fa fa-edit" aria-hidden="true"></i> @lang("messages.edit")</a></li>-->
+                        <!--<li><a href="{{action(\'App\Http\Controllers\SellReturnController@destroy\', [$id])}}" class="delete_sell_return" ><i class="fa fa-trash" aria-hidden="true"></i> @lang("messages.delete")</a></li>-->
                         <li><a href="#" class="print-invoice" data-href="{{action(\'App\Http\Controllers\SellReturnController@printInvoice\', [$id])}}"><i class="fa fa-print" aria-hidden="true"></i> @lang("messages.print")</a></li>
 
                     @if($payment_status != "paid")
-                        <li><a href="{{action(\'App\Http\Controllers\TransactionPaymentController@addPayment\', [$id])}}" class="add_payment_modal"><i class="fas fa-money-bill-alt"></i> @lang("purchase.add_payment")</a></li>
+                        <!--<li><a href="{{action(\'App\Http\Controllers\TransactionPaymentController@addPayment\', [$id])}}" class="add_payment_modal"><i class="fas fa-money-bill-alt"></i> @lang("purchase.add_payment")</a></li>-->
                     @endif
 
-                    <li><a href="{{action(\'App\Http\Controllers\TransactionPaymentController@show\', [$id])}}" class="view_payment_modal"><i class="fas fa-money-bill-alt"></i> @lang("purchase.view_payments")</a></li>
+                    <!--<li><a href="{{action(\'App\Http\Controllers\TransactionPaymentController@show\', [$id])}}" class="view_payment_modal"><i class="fas fa-money-bill-alt"></i> @lang("purchase.view_payments")</a></li>-->
                     </ul>
                     </div>'
                 )
@@ -287,7 +287,19 @@ class SellReturnController extends Controller
                 $sell_return = $this->transactionUtil->addSellReturn($input, $business_id, $user_id);
 
                 $receipt = $this->receiptContent($business_id, $sell_return->location_id, $sell_return->id);
+                $transaction = Transaction::findOrFail($sell_return->return_parent_id);
 
+                //$fel_invoice = $this->transactionUtil->GetFelinvoice($sell_return->return_parent_id);
+                // Actualizar el estado anulación venta LAESTRADA
+                $transaction->update([
+                    'status' => 'cancel',
+                ]);
+                $ReturnSell = TransactionSellLine::Where('transaction_id',$sell_return->return_parent_id)->first();
+                // Actualizar retorno de venta, ya que no es un retorno, es una anulación LAESTRADA
+                $ReturnSell->update([
+                    'quantity_returned' => 0,
+                ]);
+                
                 DB::commit();
 
                 $output = ['success' => 1,
