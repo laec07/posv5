@@ -1867,6 +1867,134 @@ class ReportController extends Controller
             ->with(compact('business_locations', 'suppliers', 'brands'));
     }
 
+
+    /**
+     * Shows product Group sale report
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function getproductAgroupSellReport(Request $request)
+    {
+        if (!auth()->user()->can('purchase_n_sell_report.view')) {
+            abort(403, 'Unauthorized action.');
+        }
+    
+        $business_id = $request->session()->get('user.business_id');
+        $custom_labels = json_decode(session('business.custom_labels'), true);
+    
+        $product_custom_field1 = !empty($custom_labels['product']['custom_field_1']) ? $custom_labels['product']['custom_field_1'] : '';
+        $product_custom_field2 = !empty($custom_labels['product']['custom_field_2']) ? $custom_labels['product']['custom_field_2'] : '';
+    
+        if ($request->ajax()) {
+            $query = TransactionSellLine::join('transactions as t', 'transaction_sell_lines.transaction_id', '=', 't.id')
+                ->join('variations as v', 'transaction_sell_lines.variation_id', '=', 'v.id')
+                ->join('product_variations as pv', 'v.product_variation_id', '=', 'pv.id')
+                ->join('products as p', 'pv.product_id', '=', 'p.id')
+                ->leftJoin('units as u', 'p.unit_id', '=', 'u.id')
+                ->where('t.business_id', $business_id)
+                ->where('t.type', 'sell')
+                ->where('t.status', 'final')
+                ->select(
+                    'p.id as product_id',
+                    'p.name as product_name',
+                    'p.type as product_type',
+                    'p.product_custom_field1',
+                    'p.product_custom_field2',
+                    'pv.name as product_variation',
+                    'v.name as variation_name',
+                    'v.sub_sku',
+                    'u.short_name as unit',
+                    DB::raw('SUM(transaction_sell_lines.quantity - transaction_sell_lines.quantity_returned) as total_sold'),
+                    DB::raw('AVG(transaction_sell_lines.unit_price_before_discount) as avg_unit_price'),
+                    DB::raw('AVG(transaction_sell_lines.unit_price_inc_tax) as avg_unit_sale_price'),
+                    DB::raw('SUM((transaction_sell_lines.quantity - transaction_sell_lines.quantity_returned) * transaction_sell_lines.unit_price_inc_tax) as total_revenue'),
+                    DB::raw('AVG(v.default_purchase_price) as avg_purchase_price'),
+                    DB::raw('((AVG(transaction_sell_lines.unit_price_before_discount) - AVG(v.default_purchase_price))) as diferencia'), //laestrada
+                )
+                ->groupBy('p.id', 'pv.id', 'v.id', 'u.short_name')
+                ->orderByDesc('total_sold');
+    
+            if ($request->filled('variation_id')) {
+                $query->where('transaction_sell_lines.variation_id', $request->variation_id);
+            }
+    
+            if ($request->filled('start_date') && $request->filled('end_date')) {
+                $query->whereBetween('t.transaction_date', [$request->start_date, $request->end_date]);
+            }
+    
+            $permitted_locations = auth()->user()->permitted_locations();
+            if ($permitted_locations !== 'all') {
+                $query->whereIn('t.location_id', $permitted_locations);
+            }
+    
+            if ($request->filled('location_id')) {
+                $query->where('t.location_id', $request->location_id);
+            }
+    
+            if ($request->filled('category_id')) {
+                $query->where('p.category_id', $request->category_id);
+            }
+    
+            if ($request->filled('brand_id')) {
+                $query->where('p.brand_id', $request->brand_id);
+            }
+    
+            if ($request->filled('status_paid')) {
+                if ($request->status_paid == 'due') {
+                    $query->whereIn('t.payment_status', ['partial', 'due']);
+                } else {
+                    $query->where('t.payment_status', $request->status_paid);
+                }
+            }
+    
+            if ($request->filled('user')) {
+                $query->where('t.created_by', $request->user);
+            }
+    
+            return Datatables::of($query)
+                ->editColumn('product_name', function ($row) {
+                    return $row->product_type == 'variable'
+                        ? $row->product_name . ' - ' . $row->product_variation . ' - ' . $row->variation_name
+                        : $row->product_name;
+                })
+                ->editColumn('total_sold', function ($row) {
+                    return '<span class="total_sold" data-orig-value="' . $row->total_sold . '">' .
+                        $this->transactionUtil->num_f($row->total_sold, false, null, true) . '</span> ' . $row->unit;
+                })
+                ->editColumn('unit_sale_price', function ($row) {
+                    return '<span class="unit_sale_price" data-orig-value="' . $row->avg_unit_sale_price . '">' .
+                        $this->transactionUtil->num_f($row->avg_unit_sale_price, true) . '</span>';
+                })
+                ->editColumn('avg_purchase_price', function ($row) {
+                    return '<span class="avg_purchase_price" data-orig-value="' . $row->avg_purchase_price . '">' .
+                        $this->transactionUtil->num_f($row->avg_purchase_price, true) . '</span>';
+                })
+                ->editColumn('avg_unit_price', function ($row) {
+                    return '<span class="avg_unit_price" data-orig-value="' . $row->avg_unit_price . '">' .
+                        $this->transactionUtil->num_f($row->avg_unit_price, true) . '</span>';
+                })
+                ->editColumn('diferencia', function ($row) {
+                    return '<span class="diferencia" data-orig-value="' . $row->diferencia . '">' .
+                        $this->transactionUtil->num_f($row->diferencia, true) . '</span>';
+                })
+                ->editColumn('subtotal', function ($row) {
+                    return '<span class="subtotal" data-orig-value="' . $row->total_revenue . '">' .
+                        $this->transactionUtil->num_f($row->total_revenue, true) . '</span>';
+                })
+                ->rawColumns(['product_name', 'total_sold', 'unit_sale_price', 'subtotal','avg_purchase_price','avg_unit_price','diferencia'])
+                ->make(true);
+        }
+    
+        $business_locations = BusinessLocation::forDropdown($business_id);
+        $categories = Category::forDropdown($business_id, 'product');
+        $brands = Brands::forDropdown($business_id);
+        $users = User::allUsersDropdown($business_id, false);
+    
+        return view('report.product_sell_report')->with(compact(
+            'business_locations', 'categories', 'brands', 'product_custom_field1', 'product_custom_field2', 'users'
+        ));
+    }
+    
     /**
      * Shows product sale report
      *

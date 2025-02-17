@@ -285,6 +285,7 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::get('/reports/product-purchase-report', [ReportController::class, 'getproductPurchaseReport']);
     Route::get('/reports/product-sell-grouped-by', [ReportController::class, 'productSellReportBy']);
     Route::get('/reports/product-sell-report', [ReportController::class, 'getproductSellReport']);
+    Route::get('/reports/product-sell-report-agroup-producto', [ReportController::class, 'getproductAgroupSellReport']); // LAESTRADA
     Route::get('/reports/product-sell-report-with-purchase', [ReportController::class, 'getproductSellReportWithPurchase']);
     Route::get('/reports/product-sell-grouped-report', [ReportController::class, 'getproductSellGroupedReport']);
     Route::get('/reports/lot-report', [ReportController::class, 'getLotReport']);

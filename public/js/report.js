@@ -978,6 +978,116 @@ $(document).ready(function() {
         });
     }
 
+    //Product Sell Report Group LAESTRADA
+    if ($('table#product_sell_group_table').length == 1) {
+        $('#product_sr_date_filter').daterangepicker(
+            dateRangeSettings, 
+            function(start, end) {
+                $('#product_sr_date_filter').val(
+                    start.format(moment_date_format) + ' ~ ' + end.format(moment_date_format)
+                );
+                product_sell_report.ajax.reload();
+                product_sell_grouped_report.ajax.reload();
+                product_sell_report_with_purchase_table.ajax.reload();
+                $('.nav-tabs li.active').find('a[data-toggle="tab"]').trigger('shown.bs.tab');
+            }
+        );
+        $('#product_sr_date_filter').on('cancel.daterangepicker', function(ev, picker) {
+            $('#product_sr_date_filter').val('');
+            product_sell_report.ajax.reload();
+            product_sell_grouped_report.ajax.reload();
+            product_sell_report_with_purchase_table.ajax.reload();
+            $('.nav-tabs li.active').find('a[data-toggle="tab"]').trigger('shown.bs.tab');
+        });
+
+        $('#product_sr_start_time, #product_sr_end_time').datetimepicker({
+            format: moment_time_format,
+            ignoreReadonly: true,
+        }).on('dp.change', function(ev){
+            product_sell_report.ajax.reload();
+            product_sell_report_with_purchase_table.ajax.reload();
+            product_sell_grouped_report.ajax.reload();
+            $('.nav-tabs li.active').find('a[data-toggle="tab"]').trigger('shown.bs.tab');
+        });
+
+        product_sell_report = $('table#product_sell_group_table').DataTable({
+            processing: true,
+            serverSide: true,
+            aaSorting: [[6, 'desc']],
+            ajax: {
+                url: '/reports/product-sell-report-agroup-producto',
+                data: function(d) {
+                    var start = '';
+                    var end = '';
+                    var start_time = $('#product_sr_start_time').val();
+                    var end_time = $('#product_sr_end_time').val();
+
+                    if ($('#product_sr_date_filter').val()) {
+                        start = $('input#product_sr_date_filter')
+                            .data('daterangepicker')
+                            .startDate.format('YYYY-MM-DD');
+
+                        start = moment(start + " " + start_time, "YYYY-MM-DD" + " " + moment_time_format).format('YYYY-MM-DD HH:mm');
+                        end = $('input#product_sr_date_filter')
+                            .data('daterangepicker')
+                            .endDate.format('YYYY-MM-DD');
+                        end = moment(end + " " + end_time, "YYYY-MM-DD" + " " + moment_time_format).format('YYYY-MM-DD HH:mm');
+                    }
+                    d.start_date = start;
+                    d.end_date = end;
+
+                    d.variation_id = $('#variation_id').val();
+                    d.customer_id = $('select#customer_id').val();
+                    d.location_id = $('select#location_id').val();
+                    d.category_id = $('select#psr_filter_category_id').val();
+                    d.brand_id = $('select#psr_filter_brand_id').val();
+                    d.customer_group_id = $('#psr_customer_group_id').val();
+                    d.user = $('select#sr_id').val();
+                    d.status_paid = $('select#sell_list_filter_payment_status').val();
+                },
+            },
+            columns: [
+                { data: 'product_name', name: 'p.name'},
+                { data: 'sub_sku', name: 'v.sub_sku' },
+                { data: 'product_custom_field1', name: 'p.product_custom_field1', "visible": $('#psr_product_custom_field1').html().trim().length > 0},
+                { data: 'product_custom_field2', name: 'p.product_custom_field2', "visible": $('#psr_product_custom_field2').html().trim().length > 0},
+                // { data: 'customer', name: 'c.name' },
+                // { data: 'contact_id', name: 'c.contact_id' },
+                // { data: 'invoice_no', name: 't.invoice_no' },
+                // { data: 'transaction_date', name: 't.transaction_date' },
+                { data: 'total_sold', name: 'transaction_sell_lines.quantity' },
+                { data: 'avg_purchase_price', name: 'unit_price' , searchable: false},
+                { data: 'avg_unit_price', name: 'transaction_sell_lines.unit_price_before_discount' },
+                
+                // { data: 'discount_amount', name: 'transaction_sell_lines.line_discount_amount' },
+                // { data: 'tax', name: 'tax_rates.name' },
+                { data: 'unit_sale_price', name: 'transaction_sell_lines.unit_price_inc_tax' },
+                { data: 'diferencia', name: 'diferencia' , searchable: false}, //laestrada
+                { data: 'subtotal', name: 'subtotal', searchable: false },
+                // { data: 'payment_status', name: 'payment_status', searchable: false },
+                // { data: 'total_paid', name: 'total_paid', searchable: false },
+                // { data: 'total_remaining', name: 'total_remaining', searchable: false },
+                // { data: 'payment_methods', name: 'payment_methods', searchable: false },
+                // { data: 'name_agent', name: 'name_agent', searchable: false },
+            ],
+            fnDrawCallback: function(oSettings) {
+                $('#footer_subtotal').text(
+                    sum_table_col($('#product_sell_group_table'), 'row_subtotal')
+                );
+                $('#footer_total_sold').html(__sum_stock($('#product_sell_group_table'), 'total_sold'));
+
+                $('#footer_total_difference').html(__sum_stock($('#product_sell_group_table'), 'diferencia'));
+
+                
+
+                
+
+                // $('#footer_tax').html(__sum_stock($('#product_sell_group_table'), 'tax', 'left'));
+                
+                __currency_convert_recursively($('#product_sell_group_table'));
+            },
+        });
+    }
     //Product Sell Report
     if ($('table#product_sell_report_table').length == 1) {
         $('#product_sr_date_filter').daterangepicker(
