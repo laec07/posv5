@@ -1007,10 +1007,11 @@ $(document).ready(function() {
             product_sell_report.ajax.reload();
             product_sell_report_with_purchase_table.ajax.reload();
             product_sell_grouped_report.ajax.reload();
+            product_sell_group_table.ajax.reload();
             $('.nav-tabs li.active').find('a[data-toggle="tab"]').trigger('shown.bs.tab');
         });
 
-        product_sell_report = $('table#product_sell_group_table').DataTable({
+        product_sell_group_table = $('table#product_sell_group_table').DataTable({
             processing: true,
             serverSide: true,
             aaSorting: [[6, 'desc']],
@@ -1099,6 +1100,7 @@ $(document).ready(function() {
                 product_sell_report.ajax.reload();
                 product_sell_grouped_report.ajax.reload();
                 product_sell_report_with_purchase_table.ajax.reload();
+                product_sell_group_table.ajax.reload();
                 $('.nav-tabs li.active').find('a[data-toggle="tab"]').trigger('shown.bs.tab');
             }
         );
@@ -1107,6 +1109,7 @@ $(document).ready(function() {
             product_sell_report.ajax.reload();
             product_sell_grouped_report.ajax.reload();
             product_sell_report_with_purchase_table.ajax.reload();
+            product_sell_group_table.ajax.reload();
             $('.nav-tabs li.active').find('a[data-toggle="tab"]').trigger('shown.bs.tab');
         });
 
@@ -1117,6 +1120,7 @@ $(document).ready(function() {
             product_sell_report.ajax.reload();
             product_sell_report_with_purchase_table.ajax.reload();
             product_sell_grouped_report.ajax.reload();
+            product_sell_group_table.ajax.reload();
             $('.nav-tabs li.active').find('a[data-toggle="tab"]').trigger('shown.bs.tab');
         });
 
@@ -1310,6 +1314,7 @@ $(document).ready(function() {
         product_sell_report.ajax.reload();
         product_sell_grouped_report.ajax.reload();
         product_sell_report_with_purchase_table.ajax.reload();
+        product_sell_group_table.ajax.reload();
     });
 
     $('#product_sell_report_form #search_product').keyup(function() {
