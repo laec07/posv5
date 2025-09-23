@@ -48,6 +48,10 @@
                 <input type="radio" name="contact_type_radio" id="inlineRadio2" value="business">
                 @lang('business.business')
             </label>
+            <label class="radio-inline"> <!-- LAESTRADA Se añade nuevo tipo de contacto -->
+                <input type="radio" name="contact_type_radio" id="inlineRadio3" value="ambos">
+                @lang('Ambos')
+            </label>
         </div>
         <div class="col-md-4">
           <div class="form-group">
@@ -72,6 +76,18 @@
                       <i class="fa fa-users"></i>
                   </span>
                   {!! Form::select('customer_group_id', $customer_groups, $contact->customer_group_id, ['class' => 'form-control']); !!}
+              </div>
+          </div>
+        </div>
+        <div class="col-md-4"></div>  <!-- LAESTRADA Cambio de ubicación y texto para # impuesto SAT gt -->
+        <div class="col-md-4">
+          <div class="form-group">
+              {!! Form::label('tax_number', __('contact.tax_no') . ':') !!}
+              <div class="input-group">
+                  <span class="input-group-addon">
+                      <i class="fa fa-info"></i>
+                  </span>
+                  {!! Form::text('tax_number', $contact->tax_number, ['class' => 'form-control', 'placeholder' => __('contact.tax_no')]); !!}
               </div>
           </div>
         </div>
@@ -231,17 +247,7 @@
 
             <div class="col-md-12"><hr/></div>
         
-        <div class="col-md-4">
-          <div class="form-group">
-              {!! Form::label('tax_number', __('contact.tax_no') . ':') !!}
-              <div class="input-group">
-                  <span class="input-group-addon">
-                      <i class="fa fa-info"></i>
-                  </span>
-                  {!! Form::text('tax_number', $contact->tax_number, ['class' => 'form-control', 'placeholder' => __('contact.tax_no')]); !!}
-              </div>
-          </div>
-        </div>
+
 
         
         <div class="col-md-4 opening_balance">

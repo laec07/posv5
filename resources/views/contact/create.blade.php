@@ -46,6 +46,10 @@
                     <input type="radio" name="contact_type_radio" id="inlineRadio2" value="business">
                     @lang('business.business')
                 </label>
+                <label class="radio-inline"> <!-- LAESTRADA Se añade nuevo tipo de contacto -->
+                    <input type="radio" name="contact_type_radio" id="inlineRadio3" value="ambos">
+                    @lang('Ambos')
+                </label>
             </div>
             <div class="col-md-4">
                 <div class="form-group">
@@ -70,6 +74,18 @@
                       </span>
                       {!! Form::select('customer_group_id', $customer_groups, '', ['class' => 'form-control', 'required']); !!} <!-- LAESTRADA -->
                   </div>
+                </div>
+            </div>
+            <div class="col-md-4"></div>  <!-- LAESTRADA Cambio de ubicación y texto para # impuesto SAT gt -->
+            <div class="col-md-4">
+                <div class="form-group">
+                    {!! Form::label('tax_number', __('contact.tax_no') . ':') !!}
+                    <div class="input-group">
+                        <span class="input-group-addon">
+                            <i class="fa fa-info"></i>
+                        </span>
+                        {!! Form::text('tax_number', 'C/F', ['class' => 'form-control', 'placeholder' => __('contact.tax_no')]); !!}
+                    </div>
                 </div>
             </div>
             <div class="clearfix customer_fields"></div>
@@ -236,17 +252,7 @@
                 {!! Form::hidden('position', null, ['id' => 'position']); !!}
                 <div class="col-md-12"><hr/></div>
 
-                <div class="col-md-4">
-                    <div class="form-group">
-                      {!! Form::label('tax_number', __('contact.tax_no') . ':') !!}
-                        <div class="input-group">
-                          <span class="input-group-addon">
-                              <i class="fa fa-info"></i>
-                          </span>
-                          {!! Form::text('tax_number', null, ['class' => 'form-control', 'placeholder' => __('contact.tax_no')]); !!}
-                        </div>
-                    </div>
-                </div>
+
 
                 <div class="col-md-4 opening_balance">
                   <div class="form-group">

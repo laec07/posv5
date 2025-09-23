@@ -8,7 +8,7 @@
      'all_your_contact' => 'Todos sus :contacts',
      'add_contact' => 'Agregar un nuevo contacto',
      'contact_type' => 'Tipo de Contacto',
-     'tax_no' => 'Número de impuesto',
+     'tax_no' => 'Número de impuesto (NIT/CUI)',
      'pay_term' => 'Término de pago',
      'pay_term_period' => 'Periodo de plazo de pago',
      'mobile' => 'Móvil',

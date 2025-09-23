@@ -86,7 +86,8 @@ $(document).ready(function() {
             if (data.supplier_business_name) {
                 template += data.supplier_business_name + "<br>";
             }
-            template += data.text + "<br>" + LANG.mobile + ": " + data.mobile;
+            
+            template += data.text + "<br>" +  "NIT/CUI: " + data.tax_number; //LAESTRADA Cambio de Móvil a NIT/CUI
 
             if (typeof(data.total_rp) != "undefined") {
                 var rp = data.total_rp ? data.total_rp : 0;
@@ -117,7 +118,6 @@ $(document).ready(function() {
     $('#customer_id').on('select2:select', function(e) {
         
         var data = e.params.data;
-        console.log(data);
         if (data.pay_term_number) {
             $('input#pay_term_number').val(data.pay_term_number);
         } else {
@@ -2586,8 +2586,10 @@ function update_shipping_address(data) {
         if (data.supplier_business_name) {
             address.push(data.supplier_business_name);
         }
-        if (data.name) {
-            address.push('<br>' + data.name);
+        if (data.tax_number && data.tax_number.trim() !== '') {
+        address.push('<br>NIT/CUI: ' + data.tax_number);
+        } else {
+            address.push('<br>NIT/CUI: C/F');
         }
         if (data.text) {
             address.push('<br>' + data.text);

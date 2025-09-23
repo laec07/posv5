@@ -1126,7 +1126,7 @@ return [
     'proforma_invoice' => 'Factura de proforma',
     'convert_to_proforma' => 'Convertir a factura proforma',
     'converted_to_proforma_successfully' => 'Convertida a factura proforma',
-    'billing_address' => 'Dirección de Envio',
+    'billing_address' => 'Datos de facturación',
     'delete_sell' => 'Eliminar venta',
     'product_brochure' => 'Folleto del producto',
     'whatsapp_text' => 'Texto de Whatsapp',

@@ -917,7 +917,8 @@ class ContactController extends Controller
                     $query->where('contacts.name', 'like', '%'.$term.'%')
                             ->orWhere('supplier_business_name', 'like', '%'.$term.'%')
                             ->orWhere('mobile', 'like', '%'.$term.'%')
-                            ->orWhere('contacts.contact_id', 'like', '%'.$term.'%');
+                            ->orWhere('contacts.contact_id', 'like', '%'.$term.'%')
+                            ->orWhere('contacts.tax_number', 'like', '%'.$term.'%'); //Added tax number search LAESTRADA
                 });
             }
 
@@ -925,6 +926,7 @@ class ContactController extends Controller
                 'contacts.id',
                 DB::raw("IF(contacts.contact_id IS NULL OR contacts.contact_id='', contacts.name, CONCAT(contacts.name, ' (', contacts.contact_id, ')')) AS text"),
                 'mobile',
+                'tax_number',
                 'address_line_1',
                 'address_line_2',
                 'city',

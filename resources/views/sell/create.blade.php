@@ -153,10 +153,13 @@
 					</div>
 					<small>
 					<strong>
-						@lang('lang_v1.billing_address'):
+						@lang('lang_v1.billing_address'): <!-- laestrada cambio de texto Direccion de envio por Datos de facturación - 19-06-2024 -->
 					</strong>
+					
+
 					<div id="billing_address_div">
-						{!! $walk_in_customer['contact_address'] ?? '' !!}
+						{{$walk_in_customer['supplier_business_name'] ?? ''}},<br>
+						{{$walk_in_customer['tax_number'] ?? ''}}<br>
 					</div>
 					<br>
 					<strong>

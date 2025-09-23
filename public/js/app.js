@@ -526,6 +526,9 @@ $(document).ready(function() {
             } else if (this.value == 'business') {
                 $('div.individual').hide();
                 $('div.business').show();
+            } else if (this.value == 'ambos') { //LAESTRADA Se añade nuevo tipo de contacto
+                $('div.individual').show();
+                $('div.business').show();
             }
         });
         if ($('#is_customer_export').is(':checked')) {

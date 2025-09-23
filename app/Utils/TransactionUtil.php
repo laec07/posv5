@@ -1028,7 +1028,9 @@ class TransactionUtil extends Util
             ->first();
             
             //validar nombre individual o empresa
-            $nombre_receptor =(empty($customer->name)) ? $nombre_receptor = $customer->supplier_business_name :$nombre_receptor=$customer->name;
+            //$nombre_receptor =(empty($customer->name)) ? $nombre_receptor = $customer->supplier_business_name :$nombre_receptor=$customer->name;
+
+            $nombre_receptor = (empty($customer->supplier_business_name)) ? $customer->name : $customer->supplier_business_name;
 
             //validar direccion vacía
             if(empty($customer->city)){
@@ -1040,6 +1042,7 @@ class TransactionUtil extends Util
             if(empty($customer->address_line_1)){
                 $customer->address_line_1='CIUDAD';
             }
+             
         try {
             $sell_line_relations = ['modifiers'];
             $il = $invoice_layout;
@@ -1101,8 +1104,8 @@ class TransactionUtil extends Util
                 // SAT -> DTE -> DatosEmision -> Receptor
                 $dte_Receptor = $dte_DatosEmision->addChild('dte:Receptor');
                 $dte_Receptor->addAttribute('CorreoReceptor', $correos);
-                $dte_Receptor->addAttribute('IDReceptor', $customer->contact_id);
-                if(strlen( $customer->contact_id)==13){ //arreglar
+                $dte_Receptor->addAttribute('IDReceptor', $customer->tax_number);
+                if(strlen( $customer->tax_number)==13){ //arreglar
                     $dte_Receptor->addAttribute('NombreReceptor', 'CONSUMIDOR FINAL');
                     $dte_Receptor->addAttribute('TipoEspecial', 'CUI'); 
                 }else {
@@ -1201,20 +1204,20 @@ class TransactionUtil extends Util
                 'verify' => false
             ]);
             //Mando archivo firmado para certificarse
-            $responsecert = $client->post(
-                $felconfigurations->link_certificar,
-                [
-                    'headers' => [
-                        'Content-Type' => $felconfigurations->Content_Type,
-                        'UsuarioFirma' => $felconfigurations->usuario_firma,
-                        'LlaveFirma' => $felconfigurations->llave_firma,
-                        'UsuarioApi' => $felconfigurations->usuario_api,
-                        'LlaveApi' => $felconfigurations->llave_api,
-                        'identificador' => $identificador
-                    ],
-                    'body' => $xmlString
-                ]
-            );
+            // $responsecert = $client->post(
+            //     $felconfigurations->link_certificar,
+            //     [
+            //         'headers' => [
+            //             'Content-Type' => $felconfigurations->Content_Type,
+            //             'UsuarioFirma' => $felconfigurations->usuario_firma,
+            //             'LlaveFirma' => $felconfigurations->llave_firma,
+            //             'UsuarioApi' => $felconfigurations->usuario_api,
+            //             'LlaveApi' => $felconfigurations->llave_api,
+            //             'identificador' => $identificador
+            //         ],
+            //         'body' => $xmlString
+            //     ]
+            // );
             
             $estado=$responsecert->getStatusCode();
 
