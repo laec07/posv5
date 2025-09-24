@@ -549,7 +549,8 @@ class SellController extends Controller
 
                     return $status;
                 })
-                ->addColumn('conatct_name', '@if(!empty($supplier_business_name)) {{$supplier_business_name}}, <br> @endif {{$name}}')
+                ->addColumn('conatct_business_name', '{{$supplier_business_name}}') //laestrada
+                ->addColumn('conatct_name', '{{$name}}') //laestrada
                 ->editColumn('total_items', '{{@format_quantity($total_items)}}')
                 ->filterColumn('conatct_name', function ($query, $keyword) {
                     $query->where(function ($q) use ($keyword) {

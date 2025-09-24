@@ -1204,20 +1204,20 @@ class TransactionUtil extends Util
                 'verify' => false
             ]);
             //Mando archivo firmado para certificarse
-            // $responsecert = $client->post(
-            //     $felconfigurations->link_certificar,
-            //     [
-            //         'headers' => [
-            //             'Content-Type' => $felconfigurations->Content_Type,
-            //             'UsuarioFirma' => $felconfigurations->usuario_firma,
-            //             'LlaveFirma' => $felconfigurations->llave_firma,
-            //             'UsuarioApi' => $felconfigurations->usuario_api,
-            //             'LlaveApi' => $felconfigurations->llave_api,
-            //             'identificador' => $identificador
-            //         ],
-            //         'body' => $xmlString
-            //     ]
-            // );
+            $responsecert = $client->post(
+                $felconfigurations->link_certificar,
+                [
+                    'headers' => [
+                        'Content-Type' => $felconfigurations->Content_Type,
+                        'UsuarioFirma' => $felconfigurations->usuario_firma,
+                        'LlaveFirma' => $felconfigurations->llave_firma,
+                        'UsuarioApi' => $felconfigurations->usuario_api,
+                        'LlaveApi' => $felconfigurations->llave_api,
+                        'identificador' => $identificador
+                    ],
+                    'body' => $xmlString
+                ]
+            );
             
             $estado=$responsecert->getStatusCode();
 
