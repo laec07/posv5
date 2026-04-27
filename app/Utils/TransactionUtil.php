@@ -5416,6 +5416,7 @@ class TransactionUtil extends Util
                 ->leftJoin('users as ss', 'transactions.res_waiter_id', '=', 'ss.id')
                 ->leftJoin('users as dp', 'transactions.delivery_person', '=', 'dp.id')
                 ->leftJoin('res_tables as tables', 'transactions.res_table_id', '=', 'tables.id')
+                ->leftJoin('customer_groups AS gc', 'contacts.customer_group_id', '=', 'gc.id') // DANNIEL'S
                 ->join(
                     'business_locations AS bl',
                     'transactions.location_id',
@@ -5482,6 +5483,7 @@ class TransactionUtil extends Util
                     'transactions.custom_field_2',
                     'transactions.custom_field_3',
                     'transactions.custom_field_4',
+                    'gc.name as group_name', //DANNIEL'S 
                     DB::raw('DATE_FORMAT(transactions.transaction_date, "%Y/%m/%d") as sale_date'),
                     DB::raw("CONCAT(COALESCE(u.surname, ''),' ',COALESCE(u.first_name, ''),' ',COALESCE(u.last_name,'')) as added_by"),
                     DB::raw('(SELECT SUM(IF(TP.is_return = 1,-1*TP.amount,TP.amount)) FROM transaction_payments AS TP WHERE

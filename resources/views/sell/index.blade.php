@@ -44,6 +44,7 @@
                         <th>@lang('sale.invoice_no')</th>
                         <th>@lang('Nombre de la empresa')</th> <!-- laestrada para sierra madre Nombre del negocio -->
                         <th>@lang('sale.customer_name')</th>
+                        <th>Grupo de cliente</th>  <!-- DANNIEL'S -->
                         <th>@lang('sale.sm_envio')</th> <!-- laestrada para sierra madre No envio -->
                         <th>Número de DTE</th><!-- laestrada para Documentos Tributarios eléctronicos -->
                         <th>@lang('sale.location')</th>
@@ -72,7 +73,7 @@
                 <tbody></tbody>
                 <tfoot>
                     <tr class="bg-gray font-17 footer-total text-center">
-                        <td colspan="8"><strong>@lang('sale.total'):</strong></td>
+                        <td colspan="9"><strong>@lang('sale.total'):</strong></td>
                         <td class="footer_payment_status_count"></td>
                         <td class="payment_method_count"></td>
                         <td class="footer_sale_total"></td>
@@ -167,6 +168,7 @@ $(document).ready( function(){
             { data: 'invoice_no', name: 'invoice_no'},
             { data: 'conatct_business_name', name: 'conatct_business_name'},// laestrada para sierra madre Nombre del negocio
             { data: 'conatct_name', name: 'conatct_name'},
+            { data: 'group_name', name: 'group_name' }, //DANNIEL'S
             { data: 'custom_field_1', name: 'transactions.custom_field_1'}, //  laestrada para sierra madre No envio // se cambia a 'transactions.custom_field_1' para que busque por envio interno
             { data: 'numerofel', name: 'fel.numerofel'}, //  laestrada para sierra madre FEL, corregir error datatable usar nombre del select en el name
             { data: 'business_location', name: 'bl.name',visible: false},

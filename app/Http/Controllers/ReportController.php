@@ -1799,6 +1799,7 @@ class ReportController extends Controller
                 ->join('product_variations as pv', 'v.product_variation_id', '=', 'pv.id')
                 ->join('contacts as c', 't.contact_id', '=', 'c.id')
                 ->join('products as p', 'pv.product_id', '=', 'p.id')
+                ->leftJoin('customer_groups as cg', 'c.customer_group_id', '=', 'cg.id') //DANNIEL'S
                 ->leftjoin('tax_rates', 'transaction_sell_lines.tax_id', '=', 'tax_rates.id')
                 ->leftjoin('units as u', 'p.unit_id', '=', 'u.id')
                 ->leftjoin('users', 't.commission_agent','=','users.id' )
@@ -1815,6 +1816,7 @@ class ReportController extends Controller
                     'v.name as variation_name',
                     'v.sub_sku',
                     'c.name as customer',
+                    DB::raw("COALESCE(cg.name, 'Sin grupo') as customer_group"), //DANNIEL'S
                     'c.supplier_business_name',
                     'c.contact_id',
                     't.id as transaction_id',

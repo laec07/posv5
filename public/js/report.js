@@ -925,6 +925,7 @@ $(document).ready(function() {
                 { data: 'product_custom_field1', name: 'p.product_custom_field1', "visible": $('#psr_product_custom_field1').html().trim().length > 0},
                 { data: 'product_custom_field2', name: 'p.product_custom_field2', "visible": $('#psr_product_custom_field2').html().trim().length > 0},
                 { data: 'customer', name: 'c.name' },
+                { data: 'customer_group', name: 'cg.name' }, //  AGREGADA DANNIEL'S
                 { data: 'contact_id', name: 'c.contact_id' },
                 { data: 'invoice_no', name: 't.invoice_no' },
                 { data: 'transaction_date', name: 't.transaction_date' },

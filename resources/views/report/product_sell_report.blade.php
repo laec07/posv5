@@ -119,6 +119,7 @@
                                         <th id="psr_product_custom_field1">{{$product_custom_field1}}</th>
                                         <th id="psr_product_custom_field2">{{$product_custom_field2}}</th>
                                         <th>@lang('sale.customer_name')</th>
+                                        <th>Grupo de cliente</th> <!-- AGREGADO DANNIEL'S -->
                                         <th>@lang('lang_v1.contact_id')</th>
                                         <th>@lang('sale.invoice_no')</th>
                                         <th>@lang('messages.date')</th>
@@ -144,6 +145,7 @@
                                         <td id="footer_total_sold"></td>
                                         <td></td>
                                         <td></td>
+                                        <td></td> <!-- AGREGADO DANNIEL'S -->
                                         <td></td>
                                         <td></td>
                                         <td id="footer_tax"></td>
