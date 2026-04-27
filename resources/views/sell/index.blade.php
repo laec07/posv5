@@ -168,7 +168,7 @@ $(document).ready( function(){
             { data: 'invoice_no', name: 'invoice_no'},
             { data: 'conatct_business_name', name: 'conatct_business_name'},// laestrada para sierra madre Nombre del negocio
             { data: 'conatct_name', name: 'conatct_name'},
-            { data: 'group_name', name: 'group_name' }, //DANNIEL'S
+            { data: 'group_name', name: 'group_name', "searchable": false }, //DANNIEL'S
             { data: 'custom_field_1', name: 'transactions.custom_field_1'}, //  laestrada para sierra madre No envio // se cambia a 'transactions.custom_field_1' para que busque por envio interno
             { data: 'numerofel', name: 'fel.numerofel'}, //  laestrada para sierra madre FEL, corregir error datatable usar nombre del select en el name
             { data: 'business_location', name: 'bl.name',visible: false},
