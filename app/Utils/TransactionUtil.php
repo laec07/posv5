@@ -1106,8 +1106,8 @@ class TransactionUtil extends Util
                 $dte_Receptor->addAttribute('CorreoReceptor', $correos);
                 $dte_Receptor->addAttribute('IDReceptor', $customer->tax_number);
                 if(strlen( $customer->tax_number)==13){ //arreglar
-                    $dte_Receptor->addAttribute('NombreReceptor', 'CONSUMIDOR FINAL');
-                    $dte_Receptor->addAttribute('TipoEspecial', 'CUI'); 
+                    $dte_Receptor->addAttribute('TipoEspecial', 'CUI');
+                    $dte_Receptor->addAttribute('NombreReceptor', $nombre_receptor);
                 }else {
                     $dte_Receptor->addAttribute('NombreReceptor', $nombre_receptor);
                 }
@@ -1236,7 +1236,7 @@ class TransactionUtil extends Util
                         'invoice_no' => $transaction->invoice_no,
                         'fel_certificado' =>$resultado->xml_certificado,
                         'no_acceso' => $identificador,
-                        'nitreceptor' => $customer->contact_id,
+                        'nitreceptor' => $customer->tax_number,
                         'numeroautorizacion' => $resultado->uuid,
                         'montogravable' => $montoGravable,
                         'impuestototal' => $impuestoTotal,
@@ -1261,7 +1261,7 @@ class TransactionUtil extends Util
                         'bussines_id' => $location_id,
                         'invoice_no' => $transaction->invoice_no,
                         'no_acceso' => $identificador,
-                        'nitreceptor' => $customer->contact_id,
+                        'nitreceptor' => $customer->tax_number,
                         'montogravable' => $montoGravable,
                         'impuestototal' => $impuestoTotal,
                         'estado' =>'ERROR',

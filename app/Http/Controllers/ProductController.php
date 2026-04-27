@@ -2267,6 +2267,30 @@ class ProductController extends Controller
         return $output;
     }
 
+    public function adjust_product_return() //laestrada ajuste devoluciones
+    {
+        $business_id = request()->session()->get('user.business_id');
+        DB::beginTransaction();
+    
+        try {
+            $output = DB::table('transaction_sell_lines as ts')
+                ->join('transactions as t', 't.id', '=', 'ts.transaction_id')
+                ->where('t.type', 'sell')
+                ->where('t.status', 'cancel')
+                ->where('ts.quantity_returned', '>', 0)
+                ->where('t.business_id', $business_id)
+                ->update([
+                    'ts.quantity_returned' => 0
+                ]);
+    
+            DB::commit();
+    
+            return $output; 
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
     public function productStockHistory($id)
     {
         if (! auth()->user()->can('product.view')) {
@@ -2289,7 +2313,7 @@ class ProductController extends Controller
                                     ->update(['qty_available' => $stock_history[0]['stock']]);
                 $stock_details['current_stock'] = $stock_history[0]['stock'];
             }
-
+            $this->adjust_product_return(); //laestrada ajuste devoluciones
             return view('product.stock_history_details')
                 ->with(compact('stock_details', 'stock_history'));
         }
@@ -2300,6 +2324,7 @@ class ProductController extends Controller
 
         //Get all business locations
         $business_locations = BusinessLocation::forDropdown($business_id);
+        $this->adjust_product_return(); //laestrada ajuste devoluciones
 
         return view('product.stock_history')
                 ->with(compact('product', 'business_locations'));
@@ -2322,7 +2347,8 @@ class ProductController extends Controller
 
             //for ajax call $id is variation id else it is product id
             $stock_history = $this->productUtil->getVariationStockHistoryAll($business_id, $start_date, $end_date);
-
+            $this->adjust_product_return(); //laestrada ajuste devoluciones
+            
             return view('product.stock_history_details_all')
                 ->with(compact('stock_history'));
         }
@@ -2333,7 +2359,8 @@ class ProductController extends Controller
         //dd($product);
         //Get all business locations
         $business_locations = BusinessLocation::forDropdown($business_id);
-
+        $this->adjust_product_return(); //laestrada ajuste devoluciones
+        
         return view('product.stock_history_all')
                 ->with(compact('product', 'business_locations'));
     }
